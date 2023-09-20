@@ -1,0 +1,20 @@
+@keyframes girotondo {
+	0% {
+		transform: rotate(0deg) scale(.8);
+		color: red;
+	}
+
+	50% {
+		transform: rotate(360deg) scale(1.5);
+		color: blue;
+	}
+
+	100% {
+		transform: rotate(0deg) scale(.8);
+		color: red;
+	}
+}
+
+div{
+    animation: girotondo 1s infinite linear;
+}
