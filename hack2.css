@@ -14,4 +14,5 @@
 
 * {
   -webkit-animation: rainbowtext 5s infinite linear;
+  animation: rainbowtext 5s infinite linear;
 }
