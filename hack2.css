@@ -1,15 +1,15 @@
 @keyframes rainbowtext{
- 0%{color: orange !important;}
- 10%{color: purple !important;}
- 20%{color: red !important}
- 30%{color: CadetBlue !important}
- 40%{color: yellow !important;}
- 50%{color: coral !important;}
- 60%{color: green !important;}
- 70%{color: cyan !important;}
- 80%{color: DeepPink !important;}
- 90%{color: DodgerBlue !important;}
- 100%{color: orange !important;}
+ 0%{color: orange}
+ 10%{color: purple}
+ 20%{color: red}
+ 30%{color: CadetBlue}
+ 40%{color: yellow}
+ 50%{color: coral}
+ 60%{color: green}
+ 70%{color: cyan}
+ 80%{color: DeepPink}
+ 90%{color: DodgerBlue}
+ 100%{color: orange}
 }
 
 * {
