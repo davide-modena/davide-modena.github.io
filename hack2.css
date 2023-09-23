@@ -1,0 +1,17 @@
+@keyframes rainbowtext{
+ 0%{color: orange !important;}
+ 10%{color: purple !important;}
+ 20%{color: red !important}
+ 30%{color: CadetBlue !important;
+ 40%{color: yellow !important;}
+ 50%{color: coral !important;}
+ 60%{color: green !important;}
+ 70%{color: cyan !important;}
+ 80%{color: DeepPink !important;}
+ 90%{color: DodgerBlue !important;}
+ 100%{color: orange !important;}
+}
+
+* {
+  -webkit-animation: rainbow 5s infinite linear;
+}
