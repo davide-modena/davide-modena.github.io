@@ -2,7 +2,7 @@
  0%{color: orange !important;}
  10%{color: purple !important;}
  20%{color: red !important}
- 30%{color: CadetBlue !important;
+ 30%{color: CadetBlue !important}
  40%{color: yellow !important;}
  50%{color: coral !important;}
  60%{color: green !important;}
@@ -12,8 +12,7 @@
  100%{color: orange !important;}
 }
 
-html > * {
+* {
   -webkit-animation: rainbowtext 5s infinite linear;
   animation: rainbowtext 5s infinite linear;
- background-color: red;
 }
