@@ -1,0 +1,20 @@
+@keyframes arcreate{
+    0%{
+        transform: scale(.8) rotate(0deg);
+        filter: blur(10px) invert(0) hue-rotate(0deg) brightness(.8);
+    }
+
+    50%{
+        transform: scale(1.2) rotate(360deg);
+        filter: blur(0px) invert(1) hue-rotate(180deg) brightness(1);
+    }
+
+    100%{
+        transform: scale() rotate(360deg);
+        filter: blur(0px) invert(.3) hue-rotate(240deg) brightness(.5);
+    }
+}
+
+div{
+    animation: arcreate 3s infinite linear;
+}
