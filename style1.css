@@ -1,4 +1,4 @@
-/* @keyframes arcreate{
+@keyframes arcreate{
     0%{
         transform: scale(.8) rotate(0deg);
         filter: blur(10px) invert(0) hue-rotate(0deg) brightness(.8);
@@ -17,4 +17,4 @@
 
 div{
     animation: arcreate 3s infinite linear;
-} */
+}
