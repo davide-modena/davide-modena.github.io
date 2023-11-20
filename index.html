@@ -1,8 +1,116 @@
 <html>
-  <head>
-    
-  </head>
-  <body>
-    Ciao Bello
-  </body>
+
+<head>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --primary: goldenrod;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Oswald', sans-serif;
+    }
+
+    body {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      background-color: rgb(236, 236, 236);
+    }
+
+    .container {
+      width: 70%;
+      padding: 10rem;
+    }
+
+    h1 {
+      text-transform: uppercase;
+      font-size: 6rem;
+      text-wrap: pretty;
+      color: rgb(20, 20, 20);
+    }
+
+    .colored{
+      color: var(--primary);
+    }
+
+    .image-container{
+      background: url() center no-repeat;
+      background-size: 60%;
+      width: 30%;
+      height: 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1></h1>
+  </div>
+  <div class="image-container"></div>
+</body>
+<script>
+  const motivationalQuotes = [
+    "Just DO IT. Take ACTION without hesitation.",
+    "Never STOP trying. SUCCESS comes to those who persist.",
+    "Every DREAM has a beginning. START today to achieve your GOALS.",
+    "WORK hard. DEDICATION is the key to great achievements.",
+    "BE the change you want to see. SMALL STEPS lead to big changes.",
+    "No LIMITS, just POTENTIAL. Continuously push your BOUNDARIES.",
+    "FACE challenges. DIFFICULTIES make you stronger.",
+    "LIVE to the fullest. Make the most of every OPPORTUNITY.",
+    "DREAM big. Your dreams are your guide to SUCCESS.",
+    "PERSIST. The JOURNEY might be tough, but it's worth it.",
+    "BELIEVE in yourself. CONFIDENCE is the foundation of success.",
+    "EMBRACE the grind. Success is the result of consistent EFFORT.",
+    "STAY focused. Your determination defines your DESTINATION.",
+    "RISE above. ADVERSITY is an opportunity for GROWTH.",
+    "STRIVE for GREATNESS. Settle for nothing less than EXTRAORDINARY.",
+    "CHASE your GOALS. Your commitment fuels your achievements.",
+    "Take RISKS. GROWTH happens outside your comfort zone.",
+    "LEARN from FAILURE. It's a stepping stone toward success.",
+    "INSPIRE others. Your success can MOTIVATE those around you.",
+    "MAINTAIN DISCIPLINE. CONSISTENCY breeds excellence.",
+    "EMPOWER yourself. You hold the key to your own SUCCESS.",
+    "CULTIVATE GRATITUDE. Appreciate every step of your JOURNEY.",
+    "HUSTLE SMART. Work hard with purpose and STRATEGY.",
+  ];
+
+  const colors = [
+    'daa520',
+    '8b1c1c',
+    '0869aa'
+  ]
+
+  const displayRandomQuote = () => {
+    const randomQuote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
+    const words = randomQuote.split(' ');
+
+    let formattedQuote = '';
+    for (const word of words) {
+      if (word === word.toUpperCase()) {
+        formattedQuote += `<span class="colored">${word}</span> `;
+      } else {
+        formattedQuote += `${word} `;
+      }
+    }
+
+    const root = document.querySelector(':root');
+
+    root.style.setProperty('--primary', colors[Math.floor(Math.random() * colors.length)]);
+
+    const title = document.querySelector('h1');
+
+    title.innerHTML = formattedQuote;
+  }
+
+  displayRandomQuote();
+</script>
+
 </html>
