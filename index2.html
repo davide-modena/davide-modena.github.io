@@ -1,0 +1,109 @@
+<html>
+
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: goldenrod;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Oswald', sans-serif;
+        }
+
+        html {
+            overflow: hidden;
+        }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            background-color: rgb(236, 236, 236);
+        }
+
+        .container {
+            width: 70%;
+            padding: 10rem;
+        }
+
+        h1 {
+            text-transform: uppercase;
+            font-size: 6rem;
+            text-wrap: pretty;
+            color: rgb(20, 20, 20);
+        }
+
+        .colored {
+            color: var(--primary);
+        }
+
+        .image-container {
+            background: url(https://yt3.googleusercontent.com/WWMqyrd4n4rZSV1NTR__uM5pxWmF7KJ-dfHyaTwtl8Roqr6CPaP__F9cH5Fxx9tV-Wh26hJtTBY=s900-c-k-c0x00ffffff-no-rj) center no-repeat;
+            background-size: cover;
+            width: 25%;
+            height: 70%;
+            box-shadow: 20px 20px 0 0 var(--primary);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1></h1>
+    </div>
+    <div class="image-container"></div>
+</body>
+<script>
+    const motivationalQuotes = ['Vorrei essere in un altro tempo In cui se sbagli, riparti da capo. Ma il futuro che io avevo in mente sembra già far parte del passato. - Franco 126', "L'inchiostro sa quante frasi nascondono i silenzi. - Caparezza", 'Una stella è sempre sola, perché pensa solo a splendere. - Guè Pequeno', 'E tutto sembra fuori posto, tranne il mio disordine. - Salmo', 'Non devo dire grazie a nessuno, nella vita cammino da solo, finora i miei passi li ho fatti uno ad uno e ora sono più grande di loro. - Emis Killa', 'Vedo maschere ridere in coro, sopra volti che piangono soli. - Emis Killa', 'Segui la tua strada, tutto il resto si vedrà. - Fedez', "Supero il limite, finché ho il vuoto nell'iride. Il mood è schivare le vipere. - Emis Killa", "La realtà non è all'altezza della fantasia. - Marracash", 'Il successo è come una Ferrari: bisogna mantenere il turbo. - Ghali', 'Cerco ancora il mio posto nel mondo, come chi nasce per sbaglio. - Lazza', 'Il tempo non ci cambia, rivela ciò che siamo. - Rocco Hunt', 'Una canzone colora la notte insonne. Oggi ci sono, domani forse. - Nitro', "Da' una mano a chi è più debole. Quel che dai alla vita è sempre reso. - Jamil", 'Anche i tratti più neri fanno parte di bellissimi disegni. - Mezzosangue', 'Non fallisci se fallisci, ma se smetti di provarci. - Mistaman', 'Restano i fantasmi, loro con me ci stanno sempre, mica come tutti voi altri. - Gemitaiz', 'Non abbasso la testa o mi cade la corona. - Marracash', 'Punta alle stelle, se sbagli cadrai sulle nuvole. - Mondo Marcio', 'Ogni inizio inizia da una fine. - Raige', 'Non è che se sei onesto allora sei un babbo di minchia. - Marracash', 'Le cose più belle devi lottare per averle, e se le ottieni devi lottare ancora per tenerle. - Bassi Maestro', 'Dimmi cos’è che rende la vita degna di questo nome, insegnami a cambiare, a fidarmi delle persone. - Mostro', 'Se fossi un albero io sarei un salice piangente, questo fortissimo senso di niente. - Mostro', 'Amore è solo una parola, ma tu porti la definizione. - Eminem', 'Siedi e sentimi. Stammi accanto finché posso toccarti. Taci e stenditi. Dormirò sulle tue mani calde. - Madame', "Non ti dirò 'ti amo'. Come tutti, te lo dimostrerò. Perché fermarsi Ai riassunti? - Enigma", "E sei bella, te l'ho detto mille volte. Non ci hai creduto mezza. - Sfera Ebbasta", 'E mi hai dipinto il cuore di nero. E credimi che sbagli se pensi che io non ero qua. - Bind', "Finiti in un frullatore, dopo tutto 'sto grande amore, vorrei guadagnarci almeno una canzone. - Ghali", 'E sappiamo entrambi che restiamo simili, se ci sfioriamo poi prendiamo fuoco come i fiammiferi. - Ernia', 'Ci penso io a te. Tu non andare, resta. La mia vita è questa. Ma tu resta qua. - Sfera Ebbasta', 'Il primo amore non dura una vita intera, ma ti cambia la vita per sempre. - J.Ax', "Se t'incontro per strada, non riesco a parlarti. Mi si bloccano le parole non riesco a guardarti negli occhi, mi sembra di impazzire. - Jovanotti", "Noi ci sfioriamo appena come il sole con la luna nell'eclissi. - Enigma", 'Manchi già da troppo tempo e non va bene questa cosa. - Capo Plaza', 'Sei il sogno che comincia nel momento in cui mi sveglio. - Articolo 31', 'Il cuore mi è colpevole. Fa vedere lei. Rende cieco me. - Gemitaiz', 'Verso la stessa direzione Ma all’opposto di due lati, io e te, come le ali degli aeroplani. - Tedua', 'Tu mi ami, perché non mi fermo mai. E poi non mi sopporti, perché non riesco ad avere Il senso del limite. - Gemitaiz', 'Credo ancora nell’amore, nonostante ho i cerotti sul cuore. - Emis Killa', "Vieni da me, se ne hai bisogno. Tappiamo la bocca dell'orgoglio. - Luchè", 'Siamo stati complici e dopo nemici, dammi un bacio e dopo riaprimi le cicatrici. - Emis Killa', 'Ti ho dato i giorni migliori dei miei anni peggiori. - Fedez', 'So che non tornerai, io che piango mentre te ne vai. - Samuel Heron', 'Non sei più mia e ti trovo male, il tuo nuovo ragazzo ti invecchia ma resti bella e triste come il paesaggio a Venezia. - Guè Pequeno', 'Ma di una cosa sono certo, un po’ mi dà conforto che due persone non si possono dividere finché esisterà il ricordo. - Irama', "Non sono un granché come poeta, ma so che qualcuno una volta mi ha detto di cogliere l'attimo e non sprecarlo, perché non sai mai quando potrebbe essere tutto finito. - Eminem", 'E baciami che parte il treno. Ci rivedremo dentro le tue lacrime. È tutta colpa del mio ego. - Achille Lauro', 'Mi manchi come il pane, come il weekend. E non posso aspettare quindi ho bisogno di te. - Carl Brave', 'Non ti chiedo più quando ritorni, ma ti chiedo quanto rimani. Se litighiamo è la guerra dei mondi per quanto siamo lontani. - Shade', 'Sii te stesso, amico, sii fiero di chi sei, anche se suona sdolcinato, non lasciare mai che qualcuno ti dica che non sei meraviglioso. - Eminem', 'Amici, pochi sono quelli veri. - Clementino', 'Impara a capire chi son quelli veri. Tieni sempre vicino chi avevi vicino Anche quando tu non lo chiedevi. - Dala', 'Tengo vicini amici e persone care perché senza radici l’albero cade. - Marracash', 'La vita ci ha tradito, però dimmi quanto è bello, quando guardi dentro a gli occhi di un amico e ci vedi un fratello. - Mostro', 'Certi amici meno li vedi e più gli vuoi bene. Notti intere con chi non ti chiede come stai. - Ghali', 'Se sto coi miei fratelli, è palese, mi sento a casa pure se siamo in un altro paese. - Canesecco', 'Non è più quando trovi un amico trovi un tesoro, ora è quando trovi un tesoro trovi un amico. - Gemitaiz', "Tu promettimi che quando perderò la calma, sarai vicino a me. Il coraggio come un'arma. - Marracash", 'Conto gli amici che ho perso, ora che è tutto complesso. - Madman', 'Sono tutti amici quando serve, Un po’ meno amici se si perde, Un po’ meno amici, un po’ più merde. - Sfera Ebbasta', 'L’amore fa più male dell’odio. - Cocco e Gemitaiz', 'Se non mi pensi non mi frega un... - Yung', 'Mi levi il follow, sai quanto me ne ... - Ch1 5ei te', 'Il tempo di guardarti e sei già senza vestiti. - Fuck 3x', 'Quando parli di me esagera, così non sbagli. - Sfera Ebbasta', 'Stai abbaiando per paura? Non ti piglio per il ... Ci ha pensato la natura. - Salmo', 'Non puoi provare la mia vita o la mia tipa (no). Se vuoi puoi provare invidia da zitto. - Lazza', 'Sparami ma non sbagliare mira, che poi tocca a me. - BABY', 'Torneremo insieme, quando finiremo i soldi. - J-Ax', 'A volte vorrei essere normale e smettere di pensare. - Ghemon', 'Tu pensa solo Che sei il più forte, E ciò che non ti uccide non ti fotte più. - Sfera Ebbasta', 'Pensavo fosse odio, ma era lunedì. - Beba', 'Non dirmi che sono un bastardo. Fai un esame di coscienza e dimmi chi è il bugiardo. Chi è senza riguardo, per la merda che ho creato. Per questo ho sempre odiato. Chi si prende i meriti senza aver sudato. - Narcos', "C'è stata una guerra che mi ha cambiato, ed è quella che non racconterò. - Achille Lauro", 'Non dare mai la colpa al fumo, quando stai depresso. Se cerchi di essere qualcuno, prova con te stesso. - Salmo', 'Il peggio è passato, nel senso che è passato a prendermi. - Guè Pequeno', 'Non c’è schiavo più grande di chi pensa di essere libero. - Marracash', 'La verità è che non sai cosa succederà domani. La vita è una corsa folle, e niente è garantito. - Eminem', 'Ti hanno insegnato a seguire i sogni e poi hanno ammazzato chi ci prova. - Achille Lauro', 'Il bicchiere è mezzo pieno, ma di lacrime. - Kaos One']
+
+    const colors = [
+        'daa520',
+        '8b1c1c',
+        '0869aa'
+    ]
+
+    // const displayRandomQuote = () => {
+    //     const randomQuote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)].split('-');
+    //     const words = randomQuote.split(' ');
+
+    //     let formattedQuote = '';
+    //     for (const word of words) {
+    //         if (word === word.toUpperCase()) {
+    //             formattedQuote += `<span class="colored">${word}</span> `;
+    //         } else {
+    //             formattedQuote += `${word} `;
+    //         }
+    //     }
+
+    //     const root = document.querySelector(':root');
+
+    //     root.style.setProperty('--primary', colors[Math.floor(Math.random() * colors.length)]);
+
+    //     const title = document.querySelector('h1');
+    //     const imageContainer = document.querySelector('.image-container');
+
+    //     title.innerHTML = randomQuote;
+    // }
+
+    // displayRandomQuote();
+
+    const root = document.querySelector(':root');
+
+    root.style.setProperty('--primary', '#'+colors[Math.floor(Math.random() * colors.length)]);
+
+    const randomQuote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)].split('-');
+    const title = document.querySelector('h1');
+    const imageContainer = document.querySelector('.image-container');
+
+    title.innerHTML = randomQuote[0];
+    imageContainer.innerHTML = randomQuote[1];
+</script>
+
+</html>
