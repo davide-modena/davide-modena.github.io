@@ -1,0 +1,21 @@
+#cursor{
+    position: fixed;
+    width: 6px;
+    height: 6px;
+    background-color: white;
+    border-radius: 100%;
+    pointer-events: none;
+    mix-blend-mode:difference;
+}
+
+#cursorFollower{
+    position: fixed;
+    width: 75px;
+    height: 75px;
+    background-size: cover;
+    pointer-events: none;
+}
+
+*{
+    cursor: none !important;
+}
