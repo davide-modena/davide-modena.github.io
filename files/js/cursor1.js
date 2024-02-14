@@ -29,7 +29,7 @@ cursor.setAttribute('id', 'cursor');
 const cursorFollower = document.createElement('div');
 cursorFollower.setAttribute('id', 'cursorFollower');
 
-const faviconImg = document.querySelector('link[type="image/x-icon"]').getAttribute('href');
+const faviconImg = document.querySelector('link[rel="shortcut icon"]').getAttribute('href');
 cursorFollower.setAttribute('style', `background-image: url(${faviconImg})`);
 
 document.body.append(cursor, cursorFollower);
