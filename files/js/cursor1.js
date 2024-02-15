@@ -8,18 +8,30 @@ style.innerHTML = `
     border-radius: 100%;
     pointer-events: none;
     mix-blend-mode:difference;
+    z-index: 100;
 }
 
 #cursorFollower{
     position: fixed;
     width: 50px;
     height: 50px;
-    background-size: cover;
+    background-size: contain;
+    background-repeat: no-repeat;
     pointer-events: none;
+    transition: .2s;
+    top: 50%;
+    left: 50%;
+    z-index: 99;
 }
 
 *{
     cursor: none !important;
+}
+
+@media (hover: none) {    
+	#cursor, #cursorFollower{
+        display: none;
+    }
 }
 `;
 document.head.appendChild(style);
@@ -41,12 +53,12 @@ const mouseCoords = {x: 0, y: 0};
 cursorFollower.x = 0;
 cursorFollower.y = 0;
 
-cursor.style.display = 'none';
-cursorFollower.style.display = 'none';
+cursor.style.opacity = '0';
+cursorFollower.style.opacity = '0';
 
 window.addEventListener('mousemove', function (e) {
-cursor.style.display = 'block';
-cursorFollower.style.display = 'block';
+    cursor.style.opacity = '1';
+    cursorFollower.style.opacity = '1';
 
 mouseCoords.x = e.clientX;
 mouseCoords.y = e.clientY;
