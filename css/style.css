@@ -47,6 +47,14 @@ body{
     font-family: "Inconsolata", monospace;
 }
 
+.logo h2 span{
+    font-weight: 600;
+}
+
+.coolWord{
+    color: #ac77de;
+}
+
 @media (max-width: 768px){
     :root{
         font-size: 12px;
