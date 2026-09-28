@@ -30,7 +30,7 @@ type State =
 const SIZES = { s: 1, m: 2, l: 3 } as const;
 type Size = keyof typeof SIZES;
 const PLATFORMS = '.lab-card, .browser, .portrait .pic, .steps li, .skill, .timeline li, .direct';
-const POINTABLE = '.btn, .lab-card, .show h3 a, .next';
+const POINTABLE = '.btn, .lab-card, .show h3 a, .show .visual, .next, .site-header nav a, .chip, .direct a, .row a, .tag';
 const GRAVITY = 2600; // px/s²
 const RUN_SPEED = 230; // px/s
 
@@ -231,9 +231,11 @@ class Mini {
       case 'scrollrun': {
         this.pose = 'run';
         this.x += this.vx * dt;
-        if (this.x < this.half || this.x > innerWidth - this.half) {
+        // arrivato al bordo: si gira e corre dall'altra parte, invece di spingere contro il muro
+        if (this.x <= this.half || this.x >= innerWidth - this.half) {
           this.x = clamp(this.x, this.half, innerWidth - this.half);
-          this.set('idle');
+          this.vx = -this.vx;
+          this.facing = Math.sign(this.vx) || this.facing;
         }
         if (performance.now() - this.scrollStop > 220) this.set('idle');
         break;
@@ -501,9 +503,13 @@ class Mini {
     if (this.state === 'sleep') return this.wake();
     if (this.on !== 'floor' || !['idle', 'walk', 'scrollrun'].includes(this.state)) return;
     if (Math.abs(v) < 700) return;
-    this.vx = Math.sign(v) * Math.min(Math.abs(v) * 0.22, 420);
-    this.facing = Math.sign(v);
-    if (this.state !== 'scrollrun') this.set('scrollrun');
+    if (this.state === 'scrollrun') return; // già in corsa: mantiene la sua direzione
+    // corre nel verso dello scroll, ma se lì c'è il bordo va dall'altra parte
+    let dir = Math.sign(v);
+    if ((dir > 0 && this.x > innerWidth - this.half - 40) || (dir < 0 && this.x < this.half + 40)) dir = -dir;
+    this.vx = dir * Math.min(Math.abs(v) * 0.22, 420);
+    this.facing = dir;
+    this.set('scrollrun');
   }
 
   onPointerMove(e: PointerEvent) {
@@ -520,12 +526,18 @@ class Mini {
   }
 
   onPointerOver(e: PointerEvent) {
-    if (this.state !== 'idle' || this.on !== 'floor' || e.pointerType !== 'mouse') return;
+    if (!['idle', 'walk', 'sit'].includes(this.state) || e.pointerType !== 'mouse') return;
     const el = (e.target as Element).closest?.(POINTABLE);
-    if (!el || performance.now() - this.lastPoint < 7000) return;
+    if (!el || performance.now() - this.lastPoint < 2000) return;
     const r = el.getBoundingClientRect();
     const cx = r.left + r.width / 2;
-    if (Math.abs(cx - this.x) > 700) return;
+    if (Math.abs(cx - this.x) > 1400) return;
+    if (this.state === 'sit') {
+      // seduto: si limita a girarsi verso quello che guardi
+      this.facing = cx > this.x ? 1 : -1;
+      this.lastPoint = performance.now();
+      return;
+    }
     this.lastPoint = performance.now();
     this.facing = cx > this.x ? 1 : -1;
     this.set('point', 1.3);
