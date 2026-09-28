@@ -275,6 +275,14 @@ const data = {
         print(L('eccolo che arriva… 👋', 'here he comes… 👋'), 'ok');
       },
     },
+    fight: {
+      help: L('ROUND 1… (oppure scuoti forte il mini-me)', 'ROUND 1… (or shake the mini-me hard)'),
+      run() {
+        dispatchEvent(new CustomEvent('mini', { detail: 'fight' }));
+        print('<span class="k">FIGHT!</span>');
+        setTimeout(close, 400);
+      },
+    },
     sleep: {
       help: L('manda a dormire il mini-me', 'put the mini-me to sleep'),
       run() {

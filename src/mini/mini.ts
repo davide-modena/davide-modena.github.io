@@ -5,7 +5,9 @@
 // Quando sta sopra una card diventa "absolute", in coordinate della pagina: così scorre insieme
 // alla card nello stesso istante, invece di inseguirla un fotogramma dopo.
 //
-// Comandi (dal terminale, via evento "mini"): summon, sleep, on, off, size s|m|l.
+// Comandi (dal terminale, via evento "mini"): summon, sleep, fight, on, off, size s|m|l, status.
+//
+// Easter egg: se lo scuoti forte mentre lo tieni parte MINI FIGHTER (./game.ts, caricato solo allora).
 
 import { render, W, H, SIT_ROW, SEATED, type Theme } from './sprite';
 
@@ -30,7 +32,7 @@ type State =
 const SIZES = { s: 1, m: 2, l: 3 } as const;
 type Size = keyof typeof SIZES;
 const PLATFORMS = '.lab-card, .browser, .portrait .pic, .steps li, .skill, .timeline li, .direct';
-const POINTABLE = '.btn, .lab-card, .show h3 a, .show .visual, .next, .site-header nav a, .chip, .direct a, .row a, .tag';
+const POINTABLE = '.btn, .lab-card, .show h3 a, .next';
 const GRAVITY = 2600; // px/s²
 const RUN_SPEED = 230; // px/s
 
@@ -52,7 +54,12 @@ const store = {
 const rand = (a: number, b: number) => a + Math.random() * (b - a);
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
 
-class Mini {
+/** quello che il gioco riceve dal mini-me: rimbalzi, muri, soffitto, lanci */
+export interface FightHooks {
+  onEvent(type: 'grab' | 'throw' | 'wall' | 'ceiling' | 'bounce' | 'land' | 'platform', value?: number): void;
+}
+
+export class Mini {
   root = document.createElement('div');
   canvas = document.createElement('canvas');
   ctx = this.canvas.getContext('2d')!;
@@ -120,12 +127,23 @@ class Mini {
   /** strato trasparente sopra la pagina mentre lo trascini: niente click sugli elementi sotto */
   layer = document.createElement('div');
 
+  // --- gioco ------------------------------------------------------------------------------------
+  game: FightHooks | null = null;
+  starting = false;
+  /** istanti delle inversioni di direzione veloci mentre lo tieni: 4 in poco tempo = scossa */
+  shakes: number[] = [];
+  lastDirX = 0;
+  lastDirY = 0;
+  /** su telefono: quando se ne va dopo il saluto */
+  leaveAt = 0;
+
   constructor() {
     this.root.className = 'mini';
     this.root.setAttribute('aria-hidden', 'true');
     this.canvas.width = W;
     this.canvas.height = H;
     this.root.append(this.canvas);
+    if (this.compact) this.root.classList.add('touch');
     this.layer.className = 'mini-layer';
     this.layer.hidden = true;
     document.body.append(this.layer, this.root);
@@ -147,6 +165,7 @@ class Mini {
     document.addEventListener('pointerover', (e) => this.onPointerOver(e));
     document.addEventListener('pointerdown', (e) => this.onGrab(e), true);
     addEventListener('pointerup', (e) => this.onRelease(e));
+    addEventListener('pointercancel', (e) => this.onRelease(e));
     addEventListener('mini', (e) => this.command((e as CustomEvent<string>).detail, e));
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden) this.last = performance.now();
@@ -256,15 +275,17 @@ class Mini {
           this.pose = this.bounces ? 'bump' : 'fall';
         } else this.pose = this.vy < 0 ? 'jump' : 'fall';
         // soffitto sotto l'header: se lo lanci forte verso l'alto ci sbatte e ricade
-        const ceiling = this.headerH + H * this.scale;
+        const ceiling = (this.game ? 0 : this.headerH) + H * this.scale;
         if (this.y < ceiling && this.vy < 0) {
           this.y = ceiling;
           this.vy *= -0.35;
           this.particle('✦', 'stars', 2);
+          this.emit('ceiling', -this.vy);
         }
         // rimbalzo sui bordi dello schermo
         if (this.x < this.half || this.x > innerWidth - this.half) {
           this.x = clamp(this.x, this.half, innerWidth - this.half);
+          if (Math.abs(this.vx) > 200) this.emit('wall', Math.abs(this.vx));
           this.vx *= -0.55;
           this.facing = Math.sign(this.vx) || this.facing;
         }
@@ -299,8 +320,9 @@ class Mini {
       case 'wave':
         this.pose = 'wave';
         if (this.t > this.duration) {
-          if (this.compact) this.leave();
-          else this.set('idle');
+          // su telefono resta un po' sulla barra, così lo si può prendere col dito
+          if (this.compact && !this.game) this.leaveAt = performance.now() + 20000;
+          this.set('idle');
         }
         break;
       case 'point':
@@ -357,9 +379,14 @@ class Mini {
 
   /** da fermo decide cosa fare, senza fretta */
   idle() {
+    if (this.game) return;
+    const now = performance.now();
+    if (this.compact && this.leaveAt && now > this.leaveAt) {
+      this.leaveAt = 0;
+      return this.leave();
+    }
     if (!this.duration) this.duration = rand(4, 9);
     if (this.t < this.duration) return;
-    const now = performance.now();
     if (now - this.active > 25000) return this.set('sleep');
     const visibleFor = (now - this.shownAt) / 1000;
     const r = Math.random();
@@ -450,6 +477,7 @@ class Mini {
     if (!this.tumbling) return this.landOn(on, el, y);
     if (!this.bounces) this.hardHit = this.vy > 1300;
     if (this.vy > 320) {
+      this.emit(on === 'platform' ? 'platform' : 'bounce', this.vy);
       // rimbalzo: ogni volta più basso, e smette di girare
       if (!this.bounces && this.hardHit) this.particle('✦', 'stars', 3);
       this.bounces++;
@@ -472,6 +500,7 @@ class Mini {
     this.theta = 0;
     this.omega = 0;
     this.squash = 0.7;
+    this.emit(on === 'platform' ? 'platform' : 'land');
     this.set('bumpsit', this.hardHit ? 2.2 : 0.9);
   }
 
@@ -500,6 +529,7 @@ class Mini {
     this.scrollT = now;
     this.scrollStop = now;
     this.active = now;
+    if (this.game) return;
     if (this.state === 'sleep') return this.wake();
     if (this.on !== 'floor' || !['idle', 'walk', 'scrollrun'].includes(this.state)) return;
     if (Math.abs(v) < 700) return;
@@ -517,6 +547,7 @@ class Mini {
     if (e.pointerType === 'mouse') this.hover(e);
     if (this.drag) {
       const now = performance.now();
+      this.detectShake(e.clientX, e.clientY, now);
       this.drag.samples.push([e.clientX, e.clientY, now]);
       while (this.drag.samples.length > 2 && now - this.drag.samples[0][2] > 90) this.drag.samples.shift();
       this.ptr = { x: e.clientX, y: e.clientY };
@@ -525,19 +556,58 @@ class Mini {
     if (this.state === 'sleep' && Math.hypot(e.clientX - this.x, e.clientY - (this.y - 40)) < 110) this.wake();
   }
 
+  /** conta le inversioni di direzione veloci: 4 in 1,3 s fanno partire il gioco */
+  detectShake(x: number, y: number, now: number) {
+    const s = this.drag!.samples;
+    const [px, py, pt] = s[s.length - 1];
+    const dt = Math.max((now - pt) / 1000, 0.004);
+    const vx = (x - px) / dt;
+    const vy = (y - py) / dt;
+    const dx = Math.abs(vx) > 1100 ? Math.sign(vx) : 0;
+    const dy = Math.abs(vy) > 1100 ? Math.sign(vy) : 0;
+    if (dx && this.lastDirX && dx !== this.lastDirX) this.shakes.push(now);
+    if (dy && this.lastDirY && dy !== this.lastDirY) this.shakes.push(now);
+    if (dx) this.lastDirX = dx;
+    if (dy) this.lastDirY = dy;
+    this.shakes = this.shakes.filter((t) => now - t < 1300);
+    if (this.shakes.length >= 4 && !this.game) {
+      this.shakes = [];
+      this.startFight();
+    }
+  }
+
+  startFight() {
+    if (this.game || this.starting) return;
+    this.starting = true;
+    store.set('mini', 'on');
+    if (this.state === 'hidden') this.show();
+    import('./game')
+      .then((m) => m.startFight(this))
+      .finally(() => (this.starting = false));
+  }
+
+  /** chiamato dal gioco quando finisce */
+  endFight() {
+    this.game = null;
+    this.root.classList.remove('fighting');
+    this.leaveAt = this.compact ? performance.now() + 8000 : 0;
+    if (this.state === 'held' || this.state === 'air') return;
+    this.on = 'floor';
+    this.set('wave', 1.6);
+  }
+
+  emit(type: Parameters<FightHooks['onEvent']>[0], value?: number) {
+    this.game?.onEvent(type, value);
+  }
+
   onPointerOver(e: PointerEvent) {
-    if (!['idle', 'walk', 'sit'].includes(this.state) || e.pointerType !== 'mouse') return;
+    if (this.game) return;
+    if (this.state !== 'idle' || this.on !== 'floor' || e.pointerType !== 'mouse') return;
     const el = (e.target as Element).closest?.(POINTABLE);
-    if (!el || performance.now() - this.lastPoint < 2000) return;
+    if (!el || performance.now() - this.lastPoint < 7000) return;
     const r = el.getBoundingClientRect();
     const cx = r.left + r.width / 2;
-    if (Math.abs(cx - this.x) > 1400) return;
-    if (this.state === 'sit') {
-      // seduto: si limita a girarsi verso quello che guardi
-      this.facing = cx > this.x ? 1 : -1;
-      this.lastPoint = performance.now();
-      return;
-    }
+    if (Math.abs(cx - this.x) > 700) return;
     this.lastPoint = performance.now();
     this.facing = cx > this.x ? 1 : -1;
     this.set('point', 1.3);
@@ -554,8 +624,16 @@ class Mini {
     return img.data[(py * W + px) * 4 + 3] > 0;
   }
 
+  /** col dito basta toccare dentro il riquadro dello sprite, con un po' di margine */
+  hitBox(cx: number, cy: number) {
+    const left = this.x - this.half;
+    const m = 14;
+    return cx > left - m && cx < left + W * this.scale + m && cy > this.vTop - m && cy < this.vTop + H * this.scale + m;
+  }
+
   onGrab(e: PointerEvent) {
-    if (e.pointerType !== 'mouse' || e.button !== 0 || this.state === 'hidden' || !this.hit(e.clientX, e.clientY)) return;
+    if (e.button !== 0 || this.state === 'hidden') return;
+    if (e.pointerType === 'mouse' ? !this.hit(e.clientX, e.clientY) : !this.hitBox(e.clientX, e.clientY)) return;
     e.preventDefault();
     e.stopPropagation();
     this.drag = { dx: this.x - e.clientX, dy: this.y - e.clientY, samples: [[e.clientX, e.clientY, performance.now()]] };
@@ -570,7 +648,11 @@ class Mini {
     this.omega = 0;
     this.tumbling = true;
     this.bounces = 0;
+    this.shakes = [];
+    this.lastDirX = this.lastDirY = 0;
+    this.leaveAt = 0;
     this.layer.hidden = false;
+    this.emit('grab');
     this.on = 'air';
     this.platform = null;
     this.target = null;
@@ -588,6 +670,9 @@ class Mini {
     const dt = Math.max((t1 - t0) / 1000, 0.016);
     this.vx = clamp((x1 - x0) / dt, -2600, 2600);
     this.vy = clamp((y1 - y0) / dt, -2600, 2600);
+    // i lanci veloci lo fanno anche girare su se stesso
+    this.omega += clamp(this.vx * 0.006, -22, 22);
+    this.emit('throw', Math.hypot(this.vx, this.vy));
     this.drag = null;
     this.root.classList.remove('grabbed');
     document.documentElement.classList.remove('mini-grabbing');
@@ -634,6 +719,7 @@ class Mini {
       this.applySize();
       return;
     }
+    if (name === 'fight') return this.startFight();
     if (name === 'summon') {
       store.set('mini', 'on');
       if (this.state === 'hidden') return this.show();

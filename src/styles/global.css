@@ -442,8 +442,8 @@ kbd {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  /* il mini-me resta animato anche qui: si spegne con "mini off" */
-  *:not(.mini-p),
+  /* restano animati anche qui: il mini-me (si spegne con "mini off") e l'anello lento attorno alla foto */
+  *:not(.mini-p):not(.ring):not(.orbit),
   *::before,
   *::after {
     animation-duration: 0.001ms !important;
@@ -611,6 +611,14 @@ kbd {
   transform-origin: 50% 100%;
 }
 /* mentre lo trascini copre la pagina: il rilascio non clicca niente sotto */
+/* su touch lo si prende col dito: il canvas riceve il tocco e la pagina non scorre */
+.mini.touch canvas {
+  pointer-events: auto;
+  touch-action: none;
+}
+.mini.fighting {
+  z-index: 72;
+}
 .mini-layer {
   position: fixed;
   inset: 0;
@@ -690,4 +698,91 @@ html.mini-grabbing * {
     opacity: 0;
     transform: translate(-50%, 0) rotate(calc(var(--a) + 720deg)) translateX(calc(var(--s) * 11px)) rotate(calc(-1 * var(--a) - 720deg));
   }
+}
+
+/* ------------------------------------------------------------------ MINI FIGHTER */
+
+.fight {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  touch-action: none;
+  background:
+    repeating-linear-gradient(0deg, rgb(0 0 0 / 0.18) 0 2px, transparent 2px 4px),
+    rgb(5 5 8 / 0.72);
+  animation: fight-in 0.3s ease-out;
+}
+.fight.out {
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.fight canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.fight-btn {
+  position: absolute;
+  z-index: 74;
+  top: calc(env(safe-area-inset-top) + 110px);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 11px;
+  color: #fff;
+  background: #0b0b0b;
+  border: 2px solid #fff;
+  padding: 9px 12px;
+  cursor: pointer;
+}
+.fight-btn:hover {
+  background: #ffd23f;
+  color: #0b0b0b;
+}
+.fight-close {
+  right: 20px;
+}
+.fight-sound {
+  right: 72px;
+}
+.fight-hint {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--status-h) + 110px);
+  translate: -50% 0;
+  margin: 0;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 11px;
+  color: #fff;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+.fight-hint.show {
+  opacity: 1;
+  animation: fight-blink 0.9s steps(2) infinite;
+}
+@keyframes fight-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes fight-blink {
+  50% {
+    opacity: 0.35;
+  }
+}
+@media (max-width: 600px) {
+  .fight-btn {
+    top: calc(env(safe-area-inset-top) + 86px);
+    font-size: 9px;
+  }
+  .fight-hint {
+    font-size: 8px;
+  }
+}
+html.fighting,
+html.fighting * {
+  user-select: none;
+  -webkit-user-select: none;
 }
