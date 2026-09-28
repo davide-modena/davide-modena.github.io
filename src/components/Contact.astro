@@ -1,0 +1,168 @@
+---
+import { useTranslations, path } from '../i18n/utils';
+import { contact } from '../data/profile';
+import type { Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+  /** solo la riga del piè di pagina */
+  compact?: boolean;
+}
+const { lang, compact = false } = Astro.props;
+const t = useTranslations(lang);
+const year = new Date().getFullYear();
+---
+
+<section id="contatti" class={compact ? 'contact-compact' : 'section contact'} data-section={compact ? undefined : `~/${t('section.contact')}`}>
+  <span class="cross l"></span><span class="cross r"></span>
+  <div class="frame">
+    {!compact && (<>
+    <p class="label" data-reveal>
+      <span class="accent">$</span> {t('contact.kicker')}
+    </p>
+    <h2 class="big" data-scramble data-reveal>{t('contact.title')}</h2>
+
+    <div class="grid">
+      <p class="lead muted" data-reveal style="--d:.1s">{t('contact.lead')}</p>
+
+      <div class="channels" data-reveal style="--d:.2s">
+        <div class="row">
+          <span class="label">{t('contact.email')}</span>
+          <a href={`mailto:${contact.email}`} class="value link">{contact.email}</a>
+          <button class="copy mono" data-copy={contact.email} data-copied={t('contact.copied')}>
+            {t('contact.copy')}
+          </button>
+        </div>
+        <div class="row">
+          <span class="label">linkedin</span>
+          <a href={contact.linkedin} class="value link" target="_blank" rel="noopener">/in/davide-modena ↗</a>
+        </div>
+        <div class="row">
+          <span class="label">github</span>
+          <a href={contact.github} class="value link" target="_blank" rel="noopener">@davide-modena ↗</a>
+        </div>
+        <a href={path('contact', lang)} class="btn btn-primary form-cta">{t('contact.form.cta')} <span class="arrow">→</span></a>
+      </div>
+    </div>
+    </>)}
+
+    <footer class="foot mono">
+      <span>© {year} Davide Modena · {t('footer.made')}</span>
+      <span class="hints">
+        <button data-open-palette><kbd data-mod-key>ctrl k</kbd> {t('footer.hint.palette')}</button>
+        <button data-open-terminal><kbd>`</kbd> {t('footer.hint.terminal')}</button>
+        <button data-open-keys><kbd>?</kbd> {t('footer.hint.keys')}</button>
+      </span>
+      <a href="#top" class="top">{t('footer.top')} ↑</a>
+    </footer>
+  </div>
+</section>
+
+<style>
+  .contact {
+    padding-bottom: 32px;
+  }
+  .contact-compact {
+    position: relative;
+    border-top: 1px solid var(--line);
+    padding-bottom: 32px;
+  }
+  .contact-compact .foot {
+    margin-top: 32px;
+  }
+  .form-cta {
+    margin-top: 28px;
+  }
+  .accent {
+    color: var(--accent);
+  }
+  .big {
+    font-size: clamp(64px, 14vw, 200px);
+    letter-spacing: -0.055em;
+    line-height: 0.9;
+    margin: 20px 0 clamp(40px, 6vw, 72px);
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+    gap: 40px 64px;
+    align-items: start;
+  }
+  .lead {
+    font-size: 19px;
+    line-height: 1.55;
+    max-width: 38ch;
+  }
+  .channels {
+    border-top: 1px solid var(--line);
+  }
+  .row {
+    display: grid;
+    grid-template-columns: 90px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .value {
+    font-size: clamp(17px, 2.2vw, 24px);
+    letter-spacing: -0.02em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    justify-self: start;
+    max-width: 100%;
+  }
+  .copy {
+    font-size: 12px;
+    padding: 6px 10px;
+    border: 1px solid var(--line-2);
+    border-radius: 6px;
+    color: var(--fg-2);
+    transition:
+      color 0.2s,
+      border-color 0.2s;
+  }
+  .copy:hover {
+    color: var(--fg);
+    border-color: var(--fg-3);
+  }
+  .foot {
+    margin-top: clamp(80px, 12vw, 160px);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px 32px;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: var(--fg-3);
+  }
+  .hints {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .hints button {
+    color: var(--fg-3);
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+    font-size: 12px;
+    transition: color 0.2s;
+  }
+  .hints button:hover,
+  .top:hover {
+    color: var(--fg);
+  }
+  @media (max-width: 800px) {
+    .grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .row {
+      grid-template-columns: 70px minmax(0, 1fr) auto;
+    }
+    .hints {
+      display: none;
+    }
+  }
+</style>

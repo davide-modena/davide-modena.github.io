@@ -1,0 +1,149 @@
+---
+import Base from '../layouts/Base.astro';
+import Hero from '../components/Hero.astro';
+import Showcase from '../components/Showcase.astro';
+import LabCard from '../components/LabCard.astro';
+import SectionHead from '../components/SectionHead.astro';
+import { getLocalized } from '../lib/content';
+import { useTranslations, path, age } from '../i18n/utils';
+import { experience, skills } from '../data/profile';
+import type { Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const works = await getLocalized('works', lang);
+const lab = (await getLocalized('lab', lang)).filter((p) => p.data.featured).slice(0, 6);
+const allLab = await getLocalized('lab', lang);
+const fmt = (ym: string) => ym.slice(0, 4);
+---
+
+<Base lang={lang} alternate={path('home', lang === 'it' ? 'en' : 'it')}>
+  <Hero lang={lang} />
+
+  <section id="lavori" class="section" data-section={`~/${t('section.work')}`}>
+    <span class="cross l"></span><span class="cross r"></span>
+    <div class="frame">
+      <SectionHead index="01" label={t('section.work')} title={t('section.work.title')} count={works.length} />
+    </div>
+    {works.map((w, i) => <Showcase entry={w} href={path('work', lang, w.slug)} index={i} total={works.length} lang={lang} />)}
+  </section>
+
+  <section id="lab" class="section" data-section={`~/${t('section.lab')}`}>
+    <span class="cross l"></span><span class="cross r"></span>
+    <div class="frame">
+      <SectionHead index="02" label={t('section.lab')} title={t('section.lab.title')} count={allLab.length} />
+      <div class="lab-grid">
+        {lab.map((p, i) => <LabCard entry={p} href={path('lab', lang, p.slug)} index={i} />)}
+      </div>
+      <div class="more" data-reveal>
+        <a href={path('lab', lang)} class="btn">
+          {t('section.lab.all')} <span class="dim">({allLab.length})</span> <span class="arrow">→</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section id="chi-sono" class="section" data-section={`~/${t('section.about')}`}>
+    <span class="cross l"></span><span class="cross r"></span>
+    <div class="frame">
+      <SectionHead index="03" label={t('section.about')} />
+      <div class="about">
+        <div>
+          <p class="statement" data-reveal>{t('about.lead', { age: age() })}</p>
+          <p class="body muted" data-reveal style="--d:.1s">{t('about.body')}</p>
+          <a href={path('about', lang)} class="btn" data-reveal style="--d:.2s">{t('about.more')} <span class="arrow">→</span></a>
+        </div>
+        <div class="side" data-reveal style="--d:.15s">
+          <p class="label">{t('about.experience')}</p>
+          <ol class="xp">
+            {
+              experience.map((j) => (
+                <li>
+                  <span class="yr mono">
+                    {fmt(j.from)}
+                    {j.to ? (fmt(j.to) !== fmt(j.from) ? `–${fmt(j.to).slice(2)}` : '') : ` → ${t('about.present')}`}
+                  </span>
+                  <span>
+                    {j.role[lang]}
+                    <span class="dim"> · {j.org}</span>
+                  </span>
+                </li>
+              ))
+            }
+          </ol>
+          <p class="label stack-label">{t('about.skills')}</p>
+          <ul class="tags">{skills[0].items.map((s) => <li class="tag">{s}</li>)}</ul>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .lab-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+  }
+  .more {
+    margin-top: 40px;
+    display: flex;
+    justify-content: center;
+  }
+  .about {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    gap: clamp(40px, 7vw, 110px);
+  }
+  .statement {
+    font-size: clamp(24px, 2.7vw, 38px);
+    line-height: 1.22;
+    letter-spacing: -0.025em;
+    text-wrap: balance;
+  }
+  .body {
+    margin: 28px 0 36px;
+    font-size: 17px;
+    max-width: 52ch;
+  }
+  .xp {
+    list-style: none;
+    margin: 12px 0 40px;
+    padding: 0;
+    border-top: 1px solid var(--line);
+  }
+  .xp li {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    gap: 12px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 14.5px;
+  }
+  .yr {
+    font-size: 12px;
+    color: var(--fg-3);
+    padding-top: 2px;
+  }
+  .stack-label {
+    margin-bottom: 12px;
+  }
+  @media (max-width: 1000px) {
+    .lab-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 800px) {
+    .about {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  @media (max-width: 620px) {
+    .lab-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

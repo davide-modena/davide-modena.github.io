@@ -1,0 +1,28 @@
+---
+import Base from '../layouts/Base.astro';
+import Showcase from '../components/Showcase.astro';
+import { getLocalized } from '../lib/content';
+import { useTranslations, path, otherLang } from '../i18n/utils';
+import type { Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const works = await getLocalized('works', lang);
+---
+
+<Base lang={lang} alternate={path('work', otherLang(lang))} title={t('work.index.title')} path={`~/${t('section.work')}`}>
+  <section class="page-head" data-section={`~/${t('section.work')}`}>
+    <div class="frame">
+      <p class="label" data-reveal><span class="idx">01</span> / <b>{t('section.work')}</b> [{String(works.length).padStart(2, '0')}]</p>
+      <h1 data-reveal>{t('work.index.title')}<span class="accent">.</span></h1>
+      <p class="lead muted" data-reveal style="--d:.1s">{t('work.index.lead')}</p>
+    </div>
+  </section>
+  <section class="section list">
+    <span class="cross l"></span><span class="cross r"></span>
+    {works.map((w, i) => <Showcase entry={w} href={path('work', lang, w.slug)} index={i} total={works.length} lang={lang} />)}
+  </section>
+</Base>

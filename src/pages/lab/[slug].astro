@@ -1,0 +1,11 @@
+---
+import View from '../../views/DetailView.astro';
+import { getLocalized } from '../../lib/content';
+
+export async function getStaticPaths() {
+  const entries = await getLocalized('lab', 'it');
+  return entries.map((e) => ({ params: { slug: e.slug } }));
+}
+---
+
+<View lang="it" kind="lab" slug={Astro.params.slug} />

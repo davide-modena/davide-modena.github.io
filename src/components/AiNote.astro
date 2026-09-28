@@ -1,0 +1,22 @@
+---
+import { useTranslations } from '../i18n/utils';
+import type { Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+const t = useTranslations(Astro.props.lang);
+---
+
+<p class="ai mono" title={t('ai.tooltip')}>
+  <span class="dim">{t('ai')}</span> <code>claude code</code>
+</p>
+
+<style>
+  .ai {
+    font-size: 12px;
+  }
+  .ai code {
+    font-size: 11.5px;
+  }
+</style>

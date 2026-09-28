@@ -1,0 +1,25 @@
+---
+interface Props {
+  index: string;
+  label: string;
+  title?: string;
+  count?: number;
+}
+const { index, label, title, count } = Astro.props;
+---
+
+<header class="section-head">
+  <p class="label" data-reveal>
+    <span class="idx">{index}</span>
+    <span>/</span>
+    <b data-scramble>{label}</b>
+    {count !== undefined && <span class="count">[{String(count).padStart(2, '0')}]</span>}
+  </p>
+  {title && <h2 data-reveal style="--d:.08s">{title}</h2>}
+</header>
+
+<style>
+  .count {
+    margin-left: 4px;
+  }
+</style>

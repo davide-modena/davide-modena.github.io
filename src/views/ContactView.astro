@@ -1,0 +1,394 @@
+---
+import Base from '../layouts/Base.astro';
+import SectionHead from '../components/SectionHead.astro';
+import { useTranslations, path, otherLang } from '../i18n/utils';
+import { contact } from '../data/profile';
+import type { Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const topics = t('contact.form.topics').split('|');
+const steps = t('contact.steps')
+  .split(';')
+  .map((s) => s.split('|'));
+---
+
+<Base lang={lang} alternate={path('contact', otherLang(lang))} title={t('contact.page.title')} path={`~/${t('section.contact')}`} contactCta={false}>
+  <section class="page-head" data-section={`~/${t('section.contact')}`}>
+    <div class="frame">
+      <p class="label" data-reveal><span class="idx">04</span> / <b>{t('section.contact')}</b></p>
+      <h1 data-reveal>{t('contact.title')}</h1>
+      <p class="lead muted" data-reveal style="--d:.1s">{t('contact.page.lead')}</p>
+    </div>
+  </section>
+
+  <section class="section list">
+    <span class="cross l"></span><span class="cross r"></span>
+    <div class="frame layout">
+      <!-- Netlify Forms: il form viene rilevato al deploy grazie a data-netlify -->
+      <form
+        name="contatti"
+        method="POST"
+        data-netlify="true"
+        netlify-honeypot="bot-field"
+        class="form"
+        data-reveal
+        data-ok={t('contact.form.ok')}
+        data-sending={t('contact.form.sending')}
+      >
+        <input type="hidden" name="form-name" value="contatti" />
+        <p class="hp" aria-hidden="true"><label>bot <input name="bot-field" tabindex="-1" autocomplete="off" /></label></p>
+
+        <div class="row2">
+          <label class="field">
+            <span class="label">{t('contact.form.name')}</span>
+            <input name="nome" required autocomplete="name" placeholder={t('contact.form.name.ph')} />
+          </label>
+          <label class="field">
+            <span class="label">{t('contact.form.email')}</span>
+            <input name="email" type="email" required autocomplete="email" placeholder={t('contact.form.email.ph')} />
+          </label>
+        </div>
+
+        <fieldset class="field">
+          <legend class="label">{t('contact.form.topic')}</legend>
+          <div class="chips">
+            {
+              topics.map((topic, i) => (
+                <label class="chip mono">
+                  <input type="radio" name="tipo" value={topic} checked={i === 0} />
+                  <span>{topic}</span>
+                </label>
+              ))
+            }
+          </div>
+        </fieldset>
+
+        <label class="field">
+          <span class="label">{t('contact.form.message')}</span>
+          <textarea name="messaggio" rows="6" required placeholder={t('contact.form.message.ph')}></textarea>
+        </label>
+
+        <div class="submit-row">
+          <button type="submit" class="btn btn-primary">{t('contact.form.send')} <span class="arrow">→</span></button>
+          <p class="privacy">{t('contact.form.privacy')}</p>
+        </div>
+
+        <p class="result mono" role="status" aria-live="polite" hidden></p>
+        <p class="error mono" hidden>
+          {t('contact.form.error')} <a href={`mailto:${contact.email}`}>{contact.email}</a>
+        </p>
+      </form>
+
+      <aside class="direct" data-reveal style="--d:.1s">
+        <p class="label">{t('contact.direct')}</p>
+        <ul>
+          <li>
+            <span class="label">email</span>
+            <a href={`mailto:${contact.email}`} class="link">{contact.email}</a>
+            <button class="copy mono" data-copy={contact.email} data-copied={t('contact.copied')}>{t('contact.copy')}</button>
+          </li>
+          <li>
+            <span class="label">linkedin</span>
+            <a href={contact.linkedin} class="link" target="_blank" rel="noopener">/in/davide-modena ↗</a>
+          </li>
+          <li>
+            <span class="label">github</span>
+            <a href={contact.github} class="link" target="_blank" rel="noopener">@davide-modena ↗</a>
+          </li>
+        </ul>
+        <div class="facts mono">
+          <p><span class="dot"></span> {t('hero.available')}</p>
+          <p><span class="k">↳</span> {t('contact.reply')}</p>
+          <p><span class="k">⌖</span> {t('contact.where')}</p>
+          <p><span class="k">◷</span> {t('hero.localtime')} <b data-clock>--:--</b></p>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="section" data-section={`~/${t('section.contact')}/${t('contact.process')}`}>
+    <span class="cross l"></span><span class="cross r"></span>
+    <div class="frame">
+      <SectionHead index="→" label={t('contact.process')} />
+      <ol class="steps">
+        {
+          steps.map(([title, text], i) => (
+            <li data-reveal style={`--d:${i * 0.08}s`}>
+              <span class="num mono">{String(i + 1).padStart(2, '0')}</span>
+              <h3>{title}</h3>
+              <p class="muted">{text}</p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+</Base>
+
+<script>
+  const clock = document.querySelector<HTMLElement>('[data-clock]');
+  if (clock) {
+    const fmt = new Intl.DateTimeFormat('it-IT', { timeZone: 'Europe/Rome', hour: '2-digit', minute: '2-digit' });
+    const tick = () => (clock.textContent = fmt.format(new Date()));
+    tick();
+    setInterval(tick, 10000);
+  }
+
+  // invio senza ricaricare la pagina (Netlify accetta un POST urlencoded su "/")
+  const form = document.querySelector<HTMLFormElement>('form.form')!;
+  const result = form.querySelector<HTMLElement>('.result')!;
+  const error = form.querySelector<HTMLElement>('.error')!;
+  const button = form.querySelector<HTMLButtonElement>('button[type=submit]')!;
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const label = button.innerHTML;
+    button.disabled = true;
+    button.textContent = form.dataset.sending!;
+    error.hidden = true;
+    try {
+      const body = new URLSearchParams(new FormData(form) as unknown as Record<string, string>).toString();
+      const res = await fetch('/', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body });
+      if (!res.ok) throw new Error(String(res.status));
+      form.classList.add('sent');
+      result.textContent = `✓ ${form.dataset.ok}`;
+      result.hidden = false;
+    } catch {
+      error.hidden = false;
+      button.disabled = false;
+      button.innerHTML = label;
+    }
+  });
+</script>
+
+<style>
+  .page-head h1 {
+    letter-spacing: -0.06em;
+  }
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+    gap: clamp(40px, 7vw, 110px);
+    align-items: start;
+  }
+  .form {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+  .hp {
+    position: absolute;
+    left: -9999px;
+  }
+  .row2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+  }
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    min-width: 0;
+  }
+  .field legend {
+    padding: 0;
+    margin-bottom: 12px;
+  }
+  input:not([type='radio']),
+  textarea {
+    font: inherit;
+    font-size: 17px;
+    color: var(--fg);
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--line-2);
+    padding: 8px 0 12px;
+    outline: none;
+    border-radius: 0;
+    transition: border-color 0.25s;
+    resize: vertical;
+    width: 100%;
+  }
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--fg-3);
+    opacity: 0.7;
+  }
+  input:not([type='radio']):focus,
+  textarea:focus {
+    border-bottom-color: var(--accent);
+  }
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .chip {
+    position: relative;
+    cursor: pointer;
+  }
+  .chip input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .chip span {
+    display: inline-block;
+    font-size: 12.5px;
+    padding: 9px 14px;
+    border: 1px solid var(--line-2);
+    border-radius: 999px;
+    color: var(--fg-2);
+    transition: all 0.2s;
+  }
+  .chip:hover span {
+    color: var(--fg);
+    border-color: var(--fg-3);
+  }
+  .chip input:checked + span {
+    background: var(--fg);
+    border-color: var(--fg);
+    color: var(--bg);
+  }
+  .chip input:focus-visible + span {
+    outline: 1px solid var(--accent);
+    outline-offset: 3px;
+  }
+  .submit-row {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .btn[disabled] {
+    opacity: 0.6;
+    cursor: progress;
+  }
+  .privacy {
+    font-size: 13px;
+    color: var(--fg-3);
+    max-width: 34ch;
+  }
+  .form.sent > :not(.result) {
+    display: none;
+  }
+  .result {
+    font-size: 15px;
+    color: var(--ok);
+    padding: 24px;
+    border: 1px solid var(--line-2);
+    border-radius: var(--radius);
+  }
+  .error {
+    font-size: 13px;
+    color: var(--fg-2);
+  }
+  .error a {
+    color: var(--accent);
+  }
+
+  .direct ul {
+    list-style: none;
+    padding: 0;
+    margin: 12px 0 32px;
+    border-top: 1px solid var(--line);
+  }
+  .direct li {
+    display: grid;
+    grid-template-columns: 70px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 15px;
+  }
+  .direct li a {
+    justify-self: start;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+  }
+  .copy {
+    font-size: 11.5px;
+    padding: 5px 9px;
+    border: 1px solid var(--line-2);
+    border-radius: 6px;
+    color: var(--fg-2);
+  }
+  .copy:hover {
+    color: var(--fg);
+    border-color: var(--fg-3);
+  }
+  .facts {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    font-size: 12.5px;
+    color: var(--fg-2);
+  }
+  .facts p {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .facts .k {
+    width: 7px;
+    color: var(--accent);
+  }
+  .facts b {
+    font-weight: 400;
+    color: var(--fg);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .steps {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .steps li {
+    background: var(--bg);
+    padding: 28px 24px 32px;
+  }
+  .num {
+    font-size: 12px;
+    color: var(--accent);
+  }
+  .steps h3 {
+    font-size: 24px;
+    margin: 40px 0 10px;
+  }
+  .steps p {
+    font-size: 14.5px;
+  }
+
+  @media (max-width: 900px) {
+    .layout {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .steps {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 560px) {
+    .row2,
+    .steps {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

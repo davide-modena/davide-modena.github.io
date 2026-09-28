@@ -1,0 +1,272 @@
+---
+import { useTranslations, path } from '../i18n/utils';
+import { getLocalized } from '../lib/content';
+import { contact } from '../data/profile';
+import type { Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+  alternate: string;
+}
+const { lang, alternate } = Astro.props;
+const t = useTranslations(lang);
+const works = await getLocalized('works', lang);
+const lab = await getLocalized('lab', lang);
+
+type Item = { group: string; label: string; hint?: string; href?: string; action?: string; keys?: string };
+const items: Item[] = [
+  { group: t('palette.group.nav'), label: 'home', href: path('home', lang), keys: 'g h' },
+  { group: t('palette.group.nav'), label: t('nav.work'), href: path('work', lang), keys: 'g w' },
+  { group: t('palette.group.nav'), label: t('nav.lab'), href: path('lab', lang), keys: 'g l' },
+  { group: t('palette.group.nav'), label: t('nav.about'), href: path('about', lang), keys: 'g a' },
+  { group: t('palette.group.nav'), label: t('nav.contact'), href: path('contact', lang), keys: 'g c' },
+  ...works.map((w) => ({ group: t('palette.group.work'), label: w.data.title, hint: w.data.domain, href: path('work', lang, w.slug) })),
+  ...lab.map((p) => ({ group: t('palette.group.lab'), label: p.data.title, hint: p.data.kind, href: path('lab', lang, p.slug) })),
+  { group: t('palette.group.actions'), label: t('palette.copyEmail'), hint: contact.email, action: 'copy-email' },
+  { group: t('palette.group.actions'), label: t('palette.writeEmail'), href: `mailto:${contact.email}` },
+  { group: t('palette.group.actions'), label: t('palette.linkedin'), href: contact.linkedin },
+  { group: t('palette.group.actions'), label: t('palette.github'), href: contact.github },
+  { group: t('palette.group.actions'), label: t('palette.theme'), action: 'theme', keys: 't' },
+  { group: t('palette.group.actions'), label: t('palette.accent'), hint: 'violet · blue · azure', action: 'accent' },
+  { group: t('palette.group.actions'), label: t('palette.lang'), href: alternate },
+  { group: t('palette.group.actions'), label: t('palette.terminal'), action: 'terminal', keys: '`' },
+  { group: t('palette.group.actions'), label: t('palette.keys'), action: 'keys', keys: '?' },
+];
+---
+
+<dialog class="palette" aria-label={t('palette.placeholder')}>
+  <div class="box">
+    <div class="input-row">
+      <span class="prompt mono">❯</span>
+      <input
+        type="text"
+        class="mono"
+        placeholder={t('palette.placeholder')}
+        autocomplete="off"
+        spellcheck="false"
+        aria-controls="palette-list"
+        role="combobox"
+        aria-expanded="true"
+      />
+      <kbd>esc</kbd>
+    </div>
+    <ul id="palette-list" role="listbox"></ul>
+    <p class="empty mono" hidden>{t('palette.empty')}</p>
+  </div>
+</dialog>
+
+<script is:inline type="application/json" id="palette-data" set:html={JSON.stringify({ items, copied: t('contact.copied'), email: contact.email })} />
+
+<script>
+  import { runAction } from '../scripts/actions';
+
+  type Item = { group: string; label: string; hint?: string; href?: string; action?: string; keys?: string };
+  const { items } = JSON.parse(document.getElementById('palette-data')!.textContent!) as { items: Item[] };
+  const dialog = document.querySelector<HTMLDialogElement>('dialog.palette')!;
+  const input = dialog.querySelector('input')!;
+  const list = dialog.querySelector<HTMLUListElement>('ul')!;
+  const empty = dialog.querySelector<HTMLElement>('.empty')!;
+  let results: Item[] = [];
+  let active = 0;
+
+  // fuzzy semplice: tutte le lettere della ricerca, nell'ordine; bonus se consecutive o all'inizio
+  function score(text: string, q: string): number {
+    if (!q) return 1;
+    text = text.toLowerCase();
+    let ti = 0;
+    let s = 0;
+    let streak = 0;
+    for (const ch of q) {
+      const found = text.indexOf(ch, ti);
+      if (found < 0) return 0;
+      streak = found === ti ? streak + 1 : 0;
+      s += 1 + streak * 2 + (found === 0 ? 3 : 0);
+      ti = found + 1;
+    }
+    return s;
+  }
+
+  function render() {
+    const q = input.value.trim().toLowerCase();
+    results = items
+      .map((it) => ({ it, s: Math.max(score(it.label, q), score(`${it.group} ${it.hint ?? ''}`, q) * 0.5) }))
+      .filter((r) => r.s > 0)
+      .sort((a, b) => (q ? b.s - a.s : 0))
+      .map((r) => r.it);
+    active = Math.min(active, Math.max(results.length - 1, 0));
+    list.innerHTML = '';
+    let lastGroup = '';
+    results.forEach((it, i) => {
+      if (!q && it.group !== lastGroup) {
+        const g = document.createElement('li');
+        g.className = 'group mono';
+        g.textContent = it.group;
+        g.setAttribute('role', 'presentation');
+        list.append(g);
+        lastGroup = it.group;
+      }
+      const li = document.createElement('li');
+      li.className = 'item';
+      li.setAttribute('role', 'option');
+      li.dataset.i = String(i);
+      li.innerHTML = `<span class="lbl"></span><span class="hint mono"></span>${it.keys ? `<kbd>${it.keys}</kbd>` : ''}`;
+      li.querySelector('.lbl')!.textContent = it.label;
+      li.querySelector('.hint')!.textContent = it.hint ?? (q ? it.group : '');
+      li.addEventListener('mousemove', () => setActive(i));
+      li.addEventListener('click', () => choose(i));
+      list.append(li);
+    });
+    empty.hidden = results.length > 0;
+    setActive(active);
+  }
+
+  function setActive(i: number) {
+    active = i;
+    list.querySelectorAll('.item').forEach((el) => {
+      const on = Number((el as HTMLElement).dataset.i) === i;
+      el.classList.toggle('active', on);
+      el.setAttribute('aria-selected', String(on));
+      if (on) el.scrollIntoView({ block: 'nearest' });
+    });
+  }
+
+  function choose(i: number) {
+    const it = results[i];
+    if (!it) return;
+    close();
+    if (it.action) runAction(it.action);
+    else if (it.href) {
+      if (/^https?:/.test(it.href)) window.open(it.href, '_blank', 'noopener');
+      else location.href = it.href;
+    }
+  }
+
+  function open() {
+    if (dialog.open) return;
+    input.value = '';
+    active = 0;
+    render();
+    dialog.showModal();
+    input.focus();
+  }
+  function close() {
+    dialog.close();
+  }
+
+  input.addEventListener('input', () => {
+    active = 0;
+    render();
+  });
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setActive((active + 1) % Math.max(results.length, 1));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setActive((active - 1 + results.length) % Math.max(results.length, 1));
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      choose(active);
+    }
+  });
+  dialog.addEventListener('click', (e) => {
+    if (e.target === dialog) close();
+  });
+  addEventListener('palette:open', open);
+  addEventListener('palette:toggle', () => (dialog.open ? close() : open()));
+</script>
+
+<style>
+  .palette {
+    width: min(640px, calc(100vw - 32px));
+    max-height: min(520px, calc(100dvh - 120px));
+    margin: 12vh auto auto;
+    padding: 0;
+    border: 1px solid var(--line-2);
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--bg-2) 92%, transparent);
+    backdrop-filter: blur(20px);
+    color: var(--fg);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .palette[open] {
+    animation: pop 0.22s var(--ease);
+  }
+  .palette::backdrop {
+    background: rgb(0 0 0 / 0.45);
+    backdrop-filter: blur(2px);
+  }
+  @keyframes pop {
+    from {
+      opacity: 0;
+      transform: translateY(-8px) scale(0.98);
+    }
+  }
+  .box {
+    display: flex;
+    flex-direction: column;
+    max-height: inherit;
+  }
+  .input-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--line);
+  }
+  .prompt {
+    color: var(--accent);
+  }
+  input {
+    flex: 1;
+    min-width: 0;
+    background: none;
+    border: 0;
+    outline: 0;
+    color: var(--fg);
+    font-size: 14px;
+  }
+  input::placeholder {
+    color: var(--fg-3);
+  }
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 8px;
+    overflow-y: auto;
+  }
+  ul :global(.group) {
+    font-size: 11px;
+    color: var(--fg-3);
+    padding: 12px 10px 6px;
+  }
+  ul :global(.item) {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14.5px;
+  }
+  ul :global(.item.active) {
+    background: var(--bg-3);
+  }
+  ul :global(.item.active .lbl)::before {
+    content: '→ ';
+    color: var(--accent);
+    font-family: var(--mono);
+  }
+  ul :global(.hint) {
+    margin-left: auto;
+    font-size: 11.5px;
+    color: var(--fg-3);
+  }
+  .empty {
+    padding: 28px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--fg-3);
+  }
+</style>

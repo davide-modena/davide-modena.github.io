@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.astro/
+.netlify/
+.env
+.DS_Store
+
+# CV e export LinkedIn: contengono telefono e dati personali, restano solo in locale
+*.pdf
+
+# configurazione locale dell'editor/assistente
+.claude/

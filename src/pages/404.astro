@@ -1,0 +1,194 @@
+---
+import Base from '../layouts/Base.astro';
+import { getLocalized } from '../lib/content';
+import { path } from '../i18n/utils';
+import { ui } from '../i18n/ui';
+
+// elenco di tutte le pagine, per suggerire quella più simile all'indirizzo sbagliato
+const pages: string[] = [];
+for (const lang of ['it', 'en'] as const) {
+  pages.push(path('home', lang), path('work', lang), path('lab', lang), path('about', lang), path('contact', lang));
+  for (const w of await getLocalized('works', lang)) pages.push(path('work', lang, w.slug));
+  for (const p of await getLocalized('lab', lang)) pages.push(path('lab', lang, p.slug));
+}
+const strings = {
+  it: { maybe: ui.it['404.maybe'], home: ui.it['404.home'], play: ui.it['404.play'], title: ui.it['404.title'] },
+  en: { maybe: ui.en['404.maybe'], home: ui.en['404.home'], play: ui.en['404.play'], title: ui.en['404.title'] },
+};
+---
+
+<Base lang="it" alternate="/en/" title="404" path="~/404">
+  <section class="nf" data-section="~/404">
+    <div class="frame">
+      <canvas aria-hidden="true"></canvas>
+      <div class="term mono">
+        <p><span class="ps1">davide@portfolio ~ %</span> cd <span class="req"></span></p>
+        <p class="err">zsh: command not found: <span class="req"></span></p>
+        <p class="maybe" hidden><span class="dim" data-s="maybe"></span> <a class="sugg"></a> ?</p>
+        <p class="actions">
+          <a href="/" class="btn" data-home><span data-s="home"></span> <span class="arrow">→</span></a>
+          <span class="dim hint" data-s="play"></span>
+        </p>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<script is:inline type="application/json" id="nf-data" set:html={JSON.stringify({ pages, strings })} />
+
+<script>
+  const { pages, strings } = JSON.parse(document.getElementById('nf-data')!.textContent!) as {
+    pages: string[];
+    strings: Record<'it' | 'en', Record<string, string>>;
+  };
+  const req = decodeURIComponent(location.pathname);
+  const lang = req.startsWith('/en') ? 'en' : 'it';
+  const s = strings[lang];
+  document.documentElement.lang = lang;
+  document.title = `404 — ${s.title}`;
+  document.querySelectorAll('.req').forEach((el) => (el.textContent = req));
+  document.querySelectorAll<HTMLElement>('[data-s]').forEach((el) => (el.textContent = s[el.dataset.s!]));
+  if (lang === 'en') document.querySelector('[data-home]')!.setAttribute('href', '/en/');
+
+  // pagina più simile (distanza di Levenshtein)
+  function lev(a: string, b: string) {
+    const d = Array.from({ length: a.length + 1 }, (_, i) => [i, ...Array(b.length).fill(0)]);
+    for (let j = 1; j <= b.length; j++) d[0][j] = j;
+    for (let i = 1; i <= a.length; i++)
+      for (let j = 1; j <= b.length; j++) d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    return d[a.length][b.length];
+  }
+  const norm = (p: string) => p.toLowerCase().replace(/\/+$/, '');
+  const best = pages
+    .filter((p) => p.startsWith('/en') === (lang === 'en'))
+    .map((p) => ({ p, d: lev(norm(req), norm(p)) }))
+    .sort((a, b) => a.d - b.d)[0];
+  if (best && best.d <= Math.max(4, req.length * 0.5)) {
+    const a = document.querySelector<HTMLAnchorElement>('.sugg')!;
+    a.href = best.p;
+    a.textContent = best.p;
+    document.querySelector<HTMLElement>('.maybe')!.hidden = false;
+  }
+
+  // "404" fatto di pixel che scappano dal mouse e poi tornano al loro posto
+  const canvas = document.querySelector('canvas')!;
+  const ctx = canvas.getContext('2d')!;
+  const FONT: Record<string, string[]> = {
+    '4': ['10010', '10010', '10010', '11111', '00010', '00010', '00010'],
+    '0': ['01110', '10001', '10001', '10001', '10001', '10001', '01110'],
+  };
+  type P = { hx: number; hy: number; x: number; y: number; vx: number; vy: number };
+  let pts: P[] = [];
+  let cell = 10;
+  const mouse = { x: -1e4, y: -1e4 };
+  const dpr = Math.min(devicePixelRatio || 1, 2);
+
+  function layout() {
+    const w = canvas.clientWidth;
+    const h = canvas.clientHeight;
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const cols = 5 * 3 + 2 * 2; // tre cifre larghe 5 più due spazi
+    cell = Math.floor(Math.min(w / (cols + 2), h / 9));
+    const ox = (w - cols * cell) / 2;
+    const oy = (h - 7 * cell) / 2;
+    const old = pts;
+    pts = [];
+    '404'.split('').forEach((ch, k) =>
+      FONT[ch].forEach((row, y) =>
+        [...row].forEach((bit, x) => {
+          if (bit !== '1') return;
+          const hx = ox + (k * 7 + x) * cell;
+          const hy = oy + y * cell;
+          const prev = old[pts.length];
+          pts.push({ hx, hy, x: prev?.x ?? hx + (Math.random() - 0.5) * w, y: prev?.y ?? hy + (Math.random() - 0.5) * h, vx: 0, vy: 0 });
+        }),
+      ),
+    );
+  }
+
+  function frame() {
+    const w = canvas.clientWidth;
+    const h = canvas.clientHeight;
+    ctx.clearRect(0, 0, w, h);
+    const styles = getComputedStyle(document.documentElement);
+    const ink = styles.getPropertyValue('--fg').trim();
+    const accent = styles.getPropertyValue('--accent').trim();
+    const R = cell * 5;
+    for (const p of pts) {
+      const dx = p.x - mouse.x;
+      const dy = p.y - mouse.y;
+      const dist = Math.hypot(dx, dy);
+      if (dist < R) {
+        const f = (1 - dist / R) * 2.2;
+        p.vx += (dx / (dist || 1)) * f;
+        p.vy += (dy / (dist || 1)) * f;
+      }
+      p.vx += (p.hx - p.x) * 0.045;
+      p.vy += (p.hy - p.y) * 0.045;
+      p.vx *= 0.82;
+      p.vy *= 0.82;
+      p.x += p.vx;
+      p.y += p.vy;
+      const off = Math.hypot(p.x - p.hx, p.y - p.hy);
+      ctx.fillStyle = off > cell * 0.6 ? accent : ink;
+      const size = cell - 2;
+      ctx.fillRect(p.x + 1, p.y + 1, size, size);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  canvas.addEventListener('pointermove', (e) => {
+    const r = canvas.getBoundingClientRect();
+    mouse.x = e.clientX - r.left;
+    mouse.y = e.clientY - r.top;
+  });
+  canvas.addEventListener('pointerleave', () => (mouse.x = mouse.y = -1e4));
+  addEventListener('resize', layout);
+  layout();
+  frame();
+</script>
+
+<style>
+  .nf {
+    min-height: calc(100svh - var(--header-h) - var(--status-h));
+    display: flex;
+    align-items: center;
+  }
+  canvas {
+    width: 100%;
+    height: clamp(200px, 38vw, 420px);
+    display: block;
+    touch-action: none;
+    cursor: crosshair;
+  }
+  .term {
+    max-width: 640px;
+    margin: 24px auto 0;
+    font-size: 14px;
+    line-height: 1.8;
+  }
+  .ps1 {
+    color: var(--accent);
+  }
+  .err {
+    color: var(--fg-2);
+  }
+  .sugg {
+    color: var(--fg);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: var(--accent);
+  }
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-top: 24px;
+  }
+  .hint {
+    font-size: 12px;
+  }
+</style>

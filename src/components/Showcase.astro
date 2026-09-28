@@ -1,0 +1,173 @@
+---
+// Un lavoro in vetrina: mentre si scorre la pagina, il sito scorre dentro computer e
+// telefono, più veloce quanto più è lungo (scripts/scrub.ts).
+import Stage from './Stage.astro';
+import { useTranslations } from '../i18n/utils';
+import type { Localized } from '../lib/content';
+import type { Lang } from '../i18n/ui';
+
+interface Props {
+  entry: Localized<'works'>;
+  href: string;
+  index: number;
+  total: number;
+  lang: Lang;
+}
+const { entry, href, index, total, lang } = Astro.props;
+const t = useTranslations(lang);
+const d = entry.data;
+const pad = (n: number) => String(n).padStart(2, '0');
+const flip = index % 2 === 1;
+---
+
+<article class:list={['show', { flip }]} data-scrub data-nav-item>
+  <div class="frame grid">
+    <div class="info">
+      <div class="head mono">
+        <span class="n">{pad(index + 1)} <span class="dim">/ {pad(total)}</span></span>
+        <span class="status">
+          <span class:list={['dot', { wip: d.status === 'wip' }]}></span>
+          {d.status === 'wip' ? t('work.status.wip') : t('work.status.live')}
+        </span>
+      </div>
+      <h3><a href={href}>{d.title}</a></h3>
+      <p class="summary">{d.summary}</p>
+      <dl class="meta">
+        <div>
+          <dt class="label">{t('work.year')}</dt>
+          <dd>{d.year}</dd>
+        </div>
+        <div>
+          <dt class="label">{t('work.role')}</dt>
+          <dd>{d.role.join(', ')}</dd>
+        </div>
+      </dl>
+      <ul class="tags">{d.stack.map((s) => <li class="tag">{s}</li>)}</ul>
+      <div class="links">
+        <a href={href} class="btn">{t('work.details')} <span class="arrow">→</span></a>
+        <a href={d.url} class="btn up" target="_blank" rel="noopener">{d.domain} <span class="arrow">↗</span></a>
+      </div>
+      <div class="progress mono" aria-hidden="true">
+        <span class="bar"><span></span></span>
+        <span class="pct" data-scrub-pct>0%</span>
+      </div>
+    </div>
+    <a href={href} class="visual" aria-label={d.title} tabindex="-1">
+      <Stage shot={d.shot} shotMobile={d.shotMobile} domain={d.domain} title={d.title} eager={index === 0} phoneSide={flip ? 'right' : 'left'} />
+    </a>
+  </div>
+</article>
+
+<style>
+  .show {
+    padding-block: clamp(48px, 7vw, 96px);
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.9fr);
+    gap: clamp(32px, 5vw, 80px);
+    align-items: center;
+  }
+  .flip .grid {
+    grid-template-columns: minmax(0, 1.9fr) minmax(0, 1fr);
+  }
+  .flip .visual {
+    order: -1;
+  }
+  .visual {
+    display: block;
+    padding-bottom: 5%;
+  }
+  .head {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--fg-3);
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  .n {
+    color: var(--accent);
+  }
+  .status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  h3 {
+    font-size: clamp(36px, 4.2vw, 60px);
+    margin: 22px 0 16px;
+  }
+  h3 a:hover {
+    color: var(--accent);
+  }
+  .summary {
+    color: var(--fg-2);
+    font-size: 16px;
+    line-height: 1.6;
+  }
+  .meta {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 24px;
+    margin: 24px 0 18px;
+  }
+  .meta dd {
+    margin: 4px 0 0;
+    font-size: 14px;
+  }
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 28px;
+  }
+  .progress {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 32px;
+    font-size: 11px;
+    color: var(--fg-3);
+  }
+  .bar {
+    flex: 1;
+    height: 1px;
+    background: var(--line-2);
+    position: relative;
+    overflow: hidden;
+  }
+  .bar span {
+    position: absolute;
+    inset: 0;
+    background: var(--accent);
+    transform-origin: left;
+    transform: scaleX(var(--p, 0));
+  }
+  .pct {
+    width: 4ch;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (max-width: 900px) {
+    .show {
+      padding-block: 40px;
+    }
+    .show + :global(.show) {
+      border-top: 1px solid var(--line);
+    }
+    .grid,
+    .flip .grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .visual,
+    .flip .visual {
+      order: -1;
+      padding-bottom: 10%;
+    }
+    .progress {
+      display: none;
+    }
+  }
+</style>

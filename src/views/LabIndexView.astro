@@ -1,0 +1,112 @@
+---
+import Base from '../layouts/Base.astro';
+import LabCard from '../components/LabCard.astro';
+import { getLocalized } from '../lib/content';
+import { useTranslations, path, otherLang } from '../i18n/utils';
+import type { Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const lab = await getLocalized('lab', lang);
+const kinds = [...new Set(lab.map((p) => p.data.kind))];
+---
+
+<Base lang={lang} alternate={path('lab', otherLang(lang))} title={t('lab.index.title')} path={`~/${t('section.lab')}`}>
+  <section class="page-head" data-section={`~/${t('section.lab')}`}>
+    <div class="frame">
+      <p class="label" data-reveal><span class="idx">02</span> / <b>{t('section.lab')}</b> [{String(lab.length).padStart(2, '0')}]</p>
+      <h1 data-reveal>{t('lab.index.title')}<span class="accent">.</span></h1>
+      <p class="lead muted" data-reveal style="--d:.1s">{t('lab.index.lead')}</p>
+      <p class="ai-line" data-reveal style="--d:.18s" set:html={t('lab.index.ai')} />
+    </div>
+  </section>
+  <section class="section list">
+    <span class="cross l"></span><span class="cross r"></span>
+    <div class="frame">
+      <div class="filters mono" role="tablist" data-reveal>
+        <button role="tab" aria-selected="true" data-filter="all">{t('lab.filter.all')} <span class="dim">{lab.length}</span></button>
+        {
+          kinds.map((k) => (
+            <button role="tab" aria-selected="false" data-filter={k}>
+              {k} <span class="dim">{lab.filter((p) => p.data.kind === k).length}</span>
+            </button>
+          ))
+        }
+      </div>
+      <div class="lab-grid">
+        {lab.map((p, i) => <LabCard entry={p} href={path('lab', lang, p.slug)} index={i} />)}
+      </div>
+    </div>
+  </section>
+</Base>
+
+<script>
+  const buttons = document.querySelectorAll<HTMLButtonElement>('[data-filter]');
+  const cards = document.querySelectorAll<HTMLElement>('.lab-card');
+  buttons.forEach((b) =>
+    b.addEventListener('click', () => {
+      const f = b.dataset.filter!;
+      buttons.forEach((x) => x.setAttribute('aria-selected', String(x === b)));
+      cards.forEach((c) => {
+        const show = f === 'all' || c.dataset.kind === f;
+        c.hidden = !show;
+        c.toggleAttribute('data-nav-item', show);
+      });
+    }),
+  );
+</script>
+
+<style>
+  .ai-line {
+    margin-top: 16px;
+    max-width: 60ch;
+    font-size: 15px;
+    color: var(--fg-3);
+  }
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 32px;
+  }
+  .filters button {
+    font-size: 12.5px;
+    padding: 8px 12px;
+    border: 1px solid var(--line-2);
+    border-radius: 999px;
+    color: var(--fg-2);
+    display: inline-flex;
+    gap: 8px;
+    transition: all 0.2s;
+  }
+  .filters button:hover {
+    color: var(--fg);
+    border-color: var(--fg-3);
+  }
+  .filters button[aria-selected='true'] {
+    background: var(--fg);
+    color: var(--bg);
+    border-color: var(--fg);
+  }
+  .lab-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+  }
+  .lab-grid :global(.lab-card[hidden]) {
+    display: none;
+  }
+  @media (max-width: 1000px) {
+    .lab-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 620px) {
+    .lab-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

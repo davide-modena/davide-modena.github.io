@@ -1,0 +1,21 @@
+---
+title: Bustardo
+tagline: Tutti i mezzi di Trentino Trasporti su una mappa live, con notifiche quando il bus si avvicina.
+year: '2026'
+kind: app
+stack: [React, Vite, MapLibre, Node.js, Express, Web Push]
+featured: true
+order: 2
+glyph: '▞'
+---
+
+## L'idea
+
+Una PWA per seguire urbani, extraurbani, la Trento–Malè e perfino la funivia di Sardagna. Ricerca per fermata,
+per linea o da A a B; mappa live con tutti i mezzi, colorati per linea e bordati in base al ritardo.
+
+## Il problema vero
+
+L'API dell'operatore **non è affidabile**: segna "mai rilevato" anche corse in viaggio e congela i ritardi.
+Invece di fidarmi dei campi grezzi, lo stato della corsa lo deduco dagli orari e la posizione la interpolo
+fra due fermate. E l'interfaccia lo dice sempre: un mezzo *rilevato* è diverso da uno *stimato*.

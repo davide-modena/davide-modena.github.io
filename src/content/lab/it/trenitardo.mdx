@@ -1,0 +1,27 @@
+---
+title: Trenitardo
+tagline: I ritardi dei treni sulla Verona–Brennero, in tempo reale, ovunque tu li voglia vedere.
+year: '2026'
+kind: app
+stack: [Node.js, Express, React, Vite, Kotlin, Telegram]
+live: https://trenitardo.netlify.app
+featured: true
+order: 1
+glyph: '▚'
+---
+
+## L'idea
+
+Trenitardo è un monorepo **hub-and-spoke**:
+un'unica API centrale fa da proxy pulito verso i dati ufficiali di ViaggiaTreno, e tanti client sottili la usano.
+
+```
+ViaggiaTreno ◀──▶ API centrale ◀── web · PWA · widget · bot Telegram · app Android
+```
+
+## Cosa c'è dentro
+
+- **API** in Node + Express, serverless su Netlify: fusi orari, ora legale, risoluzione delle corse.
+- **PWA** in Vite + React, installabile, con l'estetica del Nothing Phone: nero, rosso, font a matrice di punti.
+- **Bot Telegram** con notifiche push quando il tuo treno cambia ritardo.
+- **Widget** animato con la posizione del treno lungo la linea, e un'**app Android** nativa in Kotlin in sviluppo.

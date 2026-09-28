@@ -1,0 +1,14 @@
+---
+title: Traffic Light Sync
+tagline: La copia su LED di un semaforo vero, sempre in fase, senza internet.
+year: '2026'
+kind: hardware
+stack: [ESP32, C++, DS3231]
+order: 6
+glyph: '◉'
+---
+
+## L'idea
+
+Un semaforo reale ha un ciclo fisso. Misurato una volta, basta un orologio preciso per riprodurlo per sempre:
+un modulo RTC DS3231 con pila tiene l'ora anche a corrente staccata, e i LED restano in fase con quello vero.

@@ -1,0 +1,96 @@
+---
+import DotCover from './DotCover.astro';
+import type { Localized } from '../lib/content';
+
+interface Props {
+  entry: Localized<'lab'>;
+  href: string;
+  index: number;
+}
+const { entry, href, index } = Astro.props;
+const d = entry.data;
+---
+
+<a href={href} class="lab-card" data-nav-item data-kind={d.kind} data-reveal style={`--d:${(index % 3) * 0.08}s`}>
+  <DotCover seed={entry.slug} kind={d.kind} glyph={d.glyph} />
+  <div class="body">
+    <div class="top mono">
+      <span>{d.kind}</span>
+      <span>{d.year}</span>
+    </div>
+    <h3>{d.title}</h3>
+    <p>{d.tagline}</p>
+    <ul class="tags">
+      {d.stack.slice(0, 4).map((s) => <li class="tag">{s}</li>)}
+      {d.stack.length > 4 && <li class="tag">+{d.stack.length - 4}</li>}
+    </ul>
+  </div>
+  <span class="arrow mono" aria-hidden="true">↗</span>
+</a>
+
+<style>
+  .lab-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--bg);
+    transition:
+      border-color 0.3s,
+      background 0.3s;
+  }
+  .lab-card:hover {
+    border-color: var(--fg-3);
+    background: var(--bg-2);
+  }
+  .body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 18px 20px 20px;
+    flex: 1;
+  }
+  .top {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11.5px;
+    color: var(--fg-3);
+  }
+  h3 {
+    font-size: 24px;
+    letter-spacing: -0.03em;
+  }
+  p {
+    color: var(--fg-2);
+    font-size: 14.5px;
+    line-height: 1.55;
+    flex: 1;
+  }
+  .tags {
+    margin-top: 6px;
+  }
+  .arrow {
+    position: absolute;
+    top: 14px;
+    right: 16px;
+    width: 30px;
+    height: 30px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 1px solid var(--line-2);
+    font-size: 13px;
+    opacity: 0;
+    transform: translate(-4px, 4px);
+    transition:
+      opacity 0.3s,
+      transform 0.4s var(--ease);
+  }
+  .lab-card:hover .arrow {
+    opacity: 1;
+    transform: none;
+  }
+</style>

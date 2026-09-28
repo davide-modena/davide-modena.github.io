@@ -1,0 +1,248 @@
+---
+import Base from '../layouts/Base.astro';
+import SectionHead from '../components/SectionHead.astro';
+import Portrait from '../components/Portrait.astro';
+import { useTranslations, path, otherLang, age } from '../i18n/utils';
+import { experience, education, skills, offline, languages } from '../data/profile';
+import type { Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+const months = lang === 'it' ? ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic'] : ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+const ym = (s: string) => `${months[Number(s.slice(5, 7)) - 1]} ${s.slice(0, 4)}`;
+const range = (from: string, to?: string) => (to ? (to === from ? ym(from) : `${ym(from)} — ${ym(to)}`) : `${ym(from)} — ${t('about.present')}`);
+// barra "ascii" per le lingue
+const bar = (pct: number) => '█'.repeat(Math.round(pct / 10)) + '░'.repeat(10 - Math.round(pct / 10));
+---
+
+<Base lang={lang} alternate={path('about', otherLang(lang))} title={t('about.title')} path={`~/${t('section.about')}`}>
+  <section class="page-head" data-section={`~/${t('section.about')}`}>
+    <div class="frame intro">
+      <div>
+        <p class="label" data-reveal><span class="idx">03</span> / <b>{t('section.about')}</b></p>
+        <h1 data-reveal>{t('about.title')}<span class="accent">.</span></h1>
+        <p class="statement" data-reveal style="--d:.1s">{t('about.lead', { age: age() })}</p>
+        <p class="lead muted" data-reveal style="--d:.15s">{t('about.body')}</p>
+      </div>
+      <div class="pic" data-reveal style="--d:.2s">
+        <Portrait ring={lang === 'it' ? 'musica · codice · design · trentino · ' : 'music · code · design · trentino · '} eager />
+      </div>
+    </div>
+  </section>
+
+  <section class="section" data-section={`~/${t('section.about')}/${t('about.experience')}`}>
+    <span class="cross l"></span><span class="cross r"></span>
+    <div class="frame">
+      <SectionHead index="a" label={t('about.experience')} />
+      <ol class="timeline">
+        {
+          [...experience].map((j) => (
+            <li data-reveal>
+              <span class="when mono">{range(j.from, j.to)}</span>
+              <div>
+                <h3>{j.role[lang]}</h3>
+                <p class="org mono">{j.org}</p>
+                <p class="muted">{j.text[lang]}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+
+      <SectionHead index="b" label={t('about.education')} />
+      <ol class="timeline">
+        {
+          education.map((j) => (
+            <li data-reveal>
+              <span class="when mono">{range(j.from, j.to)}</span>
+              <div>
+                <h3>{j.role[lang]}</h3>
+                <p class="org mono">{j.org}</p>
+                <p class="muted">{j.text[lang]}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <section class="section" data-section={`~/${t('section.about')}/${t('about.skills')}`}>
+    <span class="cross l"></span><span class="cross r"></span>
+    <div class="frame">
+      <SectionHead index="c" label={t('about.skills')} />
+      <div class="skills">
+        {
+          skills.map((s) => (
+            <div class:list={['skill', { main: s.main }]} data-reveal>
+              <p class="label">{s.group[lang]}</p>
+              <ul class="tags">
+                {s.items.map((i) => (
+                  <li class="tag">{i}</li>
+                ))}
+              </ul>
+            </div>
+          ))
+        }
+      </div>
+
+      <div class="two">
+        <div data-reveal>
+          <p class="label sub">{t('about.languages')}</p>
+          <ul class="langs mono">
+            {
+              languages.map((l) => (
+                <li>
+                  <span>{l.name[lang]}</span>
+                  <span class="bar" aria-hidden="true">
+                    {bar(l.pct)}
+                  </span>
+                  <span class="lvl">{l.level}</span>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+        <div data-reveal style="--d:.1s">
+          <p class="label sub">{t('about.offline')}</p>
+          {
+            offline.map((o) => (
+              <div class="off">
+                <h3>{o.title[lang]}</h3>
+                <p class="muted">{o.text[lang]}</p>
+              </div>
+            ))
+          }
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .intro {
+    display: grid;
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+    gap: clamp(32px, 6vw, 96px);
+    align-items: end;
+  }
+  .statement {
+    font-size: clamp(22px, 2.4vw, 32px);
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+    max-width: 34ch;
+    margin-bottom: 24px;
+  }
+  .pic {
+    display: grid;
+  }
+  .timeline {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 clamp(64px, 9vw, 120px);
+    border-top: 1px solid var(--line);
+  }
+  .timeline li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2.2fr);
+    gap: 16px 48px;
+    padding: 28px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .when {
+    font-size: 12.5px;
+    color: var(--fg-3);
+    padding-top: 6px;
+  }
+  .timeline h3 {
+    font-size: clamp(22px, 2.2vw, 30px);
+  }
+  .org {
+    font-size: 12.5px;
+    color: var(--accent);
+    margin: 8px 0 12px;
+  }
+  .timeline .muted {
+    max-width: 60ch;
+  }
+  .skills {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .skill {
+    background: var(--bg);
+    padding: 22px;
+  }
+  .skill .label {
+    margin-bottom: 14px;
+  }
+  .skill.main {
+    grid-column: 1 / -1;
+  }
+  .skill.main .tag {
+    font-size: 13px;
+    padding: 8px 10px;
+    color: var(--fg);
+  }
+  .two {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(40px, 6vw, 96px);
+    margin-top: clamp(64px, 9vw, 120px);
+  }
+  .sub {
+    margin-bottom: 16px;
+  }
+  .langs {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 13px;
+    border-top: 1px solid var(--line);
+  }
+  .langs li {
+    display: grid;
+    grid-template-columns: 90px 1fr auto;
+    gap: 16px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .bar {
+    color: var(--accent);
+    letter-spacing: 1px;
+    overflow: hidden;
+  }
+  .lvl {
+    color: var(--fg-3);
+  }
+  .off {
+    padding: 18px 0;
+    border-top: 1px solid var(--line);
+  }
+  .off h3 {
+    font-size: 22px;
+    margin-bottom: 8px;
+  }
+  @media (max-width: 800px) {
+    .intro,
+    .timeline li,
+    .two {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .pic {
+      max-width: 300px;
+      width: 100%;
+      margin-inline: auto;
+      order: -1;
+    }
+  }
+</style>

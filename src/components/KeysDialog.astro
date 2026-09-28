@@ -1,0 +1,92 @@
+---
+import { useTranslations } from '../i18n/utils';
+import type { Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+const t = useTranslations(Astro.props.lang);
+const rows: [string[], string][] = [
+  [['mod'], t('keys.palette')],
+  [['`'], t('keys.terminal')],
+  [['j', 'k'], t('keys.next')],
+  [['enter'], t('keys.open')],
+  [['g', 'h'], t('keys.home')],
+  [['g', 'w'], t('keys.work')],
+  [['g', 'l'], t('keys.lab')],
+  [['g', 'a'], t('keys.about')],
+  [['g', 'c'], t('keys.contact')],
+  [['t'], t('keys.theme')],
+  [['?'], t('keys.help')],
+  [['esc'], t('keys.close')],
+];
+---
+
+<dialog class="keys" aria-label={t('keys.title')}>
+  <div class="head mono">
+    <span>{t('keys.title')}</span>
+    <button data-close aria-label={t('keys.close')}>esc</button>
+  </div>
+  <ul>
+    {
+      rows.map(([ks, label]) => (
+        <li>
+          <span class="combo">
+            {ks.map((k) => (k === 'mod' ? <kbd data-mod-key>ctrl k</kbd> : <kbd>{k}</kbd>))}
+          </span>
+          <span class="muted">{label}</span>
+        </li>
+      ))
+    }
+  </ul>
+</dialog>
+
+<script>
+  const d = document.querySelector<HTMLDialogElement>('dialog.keys')!;
+  addEventListener('keys:open', () => (d.open ? d.close() : d.showModal()));
+  d.addEventListener('click', (e) => {
+    if (e.target === d || (e.target as HTMLElement).closest('[data-close]')) d.close();
+  });
+</script>
+
+<style>
+  .keys {
+    width: min(440px, calc(100vw - 32px));
+    padding: 0;
+    border: 1px solid var(--line-2);
+    border-radius: 14px;
+    background: var(--bg-2);
+    color: var(--fg);
+    box-shadow: var(--shadow);
+  }
+  .keys::backdrop {
+    background: rgb(0 0 0 / 0.45);
+  }
+  .head {
+    display: flex;
+    justify-content: space-between;
+    padding: 14px 18px;
+    font-size: 12.5px;
+    border-bottom: 1px solid var(--line);
+  }
+  .head button {
+    color: var(--fg-3);
+    font-size: 12px;
+  }
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 10px 18px 16px;
+  }
+  li {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    align-items: center;
+    padding: 7px 0;
+    font-size: 14px;
+  }
+  .combo {
+    display: flex;
+    gap: 4px;
+  }
+</style>

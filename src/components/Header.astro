@@ -1,0 +1,234 @@
+---
+import { useTranslations, path } from '../i18n/utils';
+import type { Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+  alternate: string;
+}
+const { lang, alternate } = Astro.props;
+const t = useTranslations(lang);
+const current = Astro.url.pathname;
+
+const links = [
+  { href: path('work', lang), label: t('nav.work') },
+  { href: path('lab', lang), label: t('nav.lab') },
+  { href: path('about', lang), label: t('nav.about') },
+  { href: path('contact', lang), label: t('nav.contact') },
+];
+---
+
+<header class="site-header">
+  <div class="frame bar">
+    <a href={path('home', lang)} class="brand mono" aria-label="Davide Modena — home">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span>davide<span class="dim">.</span>modena</span>
+    </a>
+
+    <nav aria-label="principale">
+      <ul>
+        {
+          links.map((l, i) => (
+            <li>
+              <a
+                href={l.href}
+                class="mono"
+                aria-current={current.startsWith(l.href) ? 'page' : undefined}
+              >
+                <span class="n">0{i + 1}</span>
+                {l.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div class="tools">
+      <button class="search mono" data-open-palette aria-label={t('palette.placeholder')}>
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <circle cx="7" cy="7" r="5.25" stroke="currentColor" stroke-width="1.5"></circle>
+          <path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
+        </svg>
+        <span class="search-label">{t('footer.hint.palette')}</span>
+        <kbd data-mod-key>ctrl k</kbd>
+      </button>
+
+      <a href={alternate} class="lang mono" hreflang={lang === 'it' ? 'en' : 'it'} aria-label={t('nav.lang')}>
+        <span class:list={{ on: lang === 'it' }}>it</span><span class="dim">/</span><span class:list={{ on: lang === 'en' }}
+          >en</span
+        >
+      </a>
+
+      <button class="theme" data-theme-toggle aria-label={t('nav.theme')}>
+        <svg class="moon" width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M13.5 9.6A5.9 5.9 0 0 1 6.4 2.5a5.9 5.9 0 1 0 7.1 7.1Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"></path>
+        </svg>
+        <svg class="sun" width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <circle cx="8" cy="8" r="3" stroke="currentColor" stroke-width="1.4"></circle>
+          <path d="M8 1v1.6M8 13.4V15M1 8h1.6M13.4 8H15M3 3l1.1 1.1M11.9 11.9 13 13M3 13l1.1-1.1M11.9 4.1 13 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"></path>
+        </svg>
+      </button>
+
+      <button class="menu mono" data-open-palette>{t('nav.menu')}</button>
+    </div>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    height: var(--header-h);
+    background: color-mix(in srgb, var(--bg) 78%, transparent);
+    backdrop-filter: blur(14px) saturate(1.4);
+    -webkit-backdrop-filter: blur(14px) saturate(1.4);
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.3s;
+  }
+  :global(html.scrolled) .site-header {
+    border-bottom-color: var(--line);
+  }
+  .bar {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    letter-spacing: -0.01em;
+  }
+  /* cursore a blocco che lampeggia, al posto del vecchio logo */
+  .brand-mark {
+    width: 9px;
+    height: 16px;
+    background: var(--accent);
+    animation: blink 1.1s steps(1) infinite;
+  }
+  @keyframes blink {
+    50% {
+      opacity: 0;
+    }
+  }
+
+  nav {
+    margin-left: auto;
+  }
+  nav ul {
+    display: flex;
+    gap: 4px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  nav a {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    padding: 8px 12px;
+    font-size: 13px;
+    color: var(--fg-2);
+    border-radius: 6px;
+    transition:
+      color 0.2s,
+      background 0.2s;
+  }
+  nav a .n {
+    font-size: 10px;
+    color: var(--fg-3);
+    transition: color 0.2s;
+  }
+  nav a:hover,
+  nav a[aria-current='page'] {
+    color: var(--fg);
+  }
+  nav a:hover .n,
+  nav a[aria-current='page'] .n {
+    color: var(--accent);
+  }
+
+  .tools {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 34px;
+    padding: 0 6px 0 12px;
+    border: 1px solid var(--line-2);
+    border-radius: 8px;
+    font-size: 12.5px;
+    color: var(--fg-3);
+    transition:
+      border-color 0.2s,
+      color 0.2s;
+  }
+  .search:hover {
+    border-color: var(--fg-3);
+    color: var(--fg-2);
+  }
+  .lang {
+    display: flex;
+    gap: 4px;
+    font-size: 12.5px;
+    padding: 8px 8px;
+    color: var(--fg-3);
+  }
+  .lang .on {
+    color: var(--fg);
+  }
+  .lang:hover span:not(.on):not(.dim) {
+    color: var(--accent);
+  }
+  .theme {
+    width: 34px;
+    height: 34px;
+    display: grid;
+    place-items: center;
+    border-radius: 8px;
+    color: var(--fg-2);
+    transition:
+      color 0.2s,
+      background 0.2s;
+  }
+  .theme:hover {
+    color: var(--fg);
+    background: var(--bg-2);
+  }
+  .theme .sun,
+  :global(:root[data-theme='light']) .theme .moon {
+    display: none;
+  }
+  :global(:root[data-theme='light']) .theme .sun {
+    display: block;
+  }
+  .menu {
+    display: none;
+    height: 34px;
+    padding: 0 12px;
+    border: 1px solid var(--line-2);
+    border-radius: 8px;
+    font-size: 12.5px;
+  }
+
+  @media (max-width: 900px) {
+    nav,
+    .search {
+      display: none;
+    }
+    .tools {
+      margin-left: auto;
+    }
+    .menu {
+      display: block;
+    }
+  }
+</style>

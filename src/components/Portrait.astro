@@ -1,0 +1,81 @@
+---
+// Foto tonda in bianco e nero, con un anello di testo che gira piano intorno.
+import { Image } from 'astro:assets';
+import bw from '../assets/davide-bw.webp';
+
+interface Props {
+  ring?: string;
+  eager?: boolean;
+}
+const { ring = 'davide modena · web developer · trento · ', eager = false } = Astro.props;
+const id = `ring-${Math.random().toString(36).slice(2, 8)}`;
+---
+
+<figure class="portrait">
+  <svg class="ring" viewBox="0 0 200 200" aria-hidden="true">
+    <defs>
+      <path id={id} d="M100,100 m-92,0 a92,92 0 1,1 184,0 a92,92 0 1,1 -184,0"></path>
+    </defs>
+    <text><textPath href={`#${id}`} textLength="574">{ring.repeat(2)}</textPath></text>
+  </svg>
+  <Image src={bw} alt="Davide Modena" widths={[360, 560, 720]} sizes="(max-width: 900px) 70vw, 420px" loading={eager ? 'eager' : 'lazy'} class="pic" />
+  <span class="orbit" aria-hidden="true"></span>
+</figure>
+
+<style>
+  .portrait {
+    position: relative;
+    margin: 0;
+    aspect-ratio: 1;
+    width: 100%;
+    max-width: 440px;
+    justify-self: center;
+  }
+  .pic {
+    position: absolute;
+    inset: 11%;
+    width: 78%;
+    height: 78%;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 1px solid var(--line-2);
+  }
+  .ring {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    animation: spin 40s linear infinite;
+  }
+  .ring text {
+    font-family: var(--mono);
+    font-size: 8.4px;
+    letter-spacing: 0.4px;
+    fill: var(--fg-3);
+    text-transform: lowercase;
+  }
+  /* un puntino d'accento che gira sul bordo della foto */
+  .orbit {
+    position: absolute;
+    inset: 11%;
+    border-radius: 50%;
+    animation: spin 12s linear infinite reverse;
+    pointer-events: none;
+  }
+  .orbit::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: -4px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 12px var(--accent);
+  }
+  @keyframes spin {
+    to {
+      rotate: 360deg;
+    }
+  }
+</style>

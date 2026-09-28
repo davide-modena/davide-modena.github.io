@@ -1,0 +1,21 @@
+---
+title: Mentimeter Lite
+tagline: Presentazioni interattive con domande a cui il pubblico risponde dal telefono, risultati live.
+year: '2026'
+kind: web
+stack: [Next.js, TypeScript, Tailwind, Socket.IO, PostgreSQL, Prisma, Redis]
+live: https://mentimeter-lite.onrender.com
+featured: true
+order: 4
+glyph: '▤'
+---
+
+## L'idea
+
+Un clone funzionante di Mentimeter. Il pubblico entra con un codice sessione e
+risponde dal telefono; grafici e word cloud si aggiornano in tempo reale.
+
+## Sotto il cofano
+
+Next.js con App Router, Socket.IO su un server Node custom, PostgreSQL con Prisma e Redis per presenze, lock
+dei dispositivi e timer delle slide. La word cloud usa un layout a spirale scritto da zero.

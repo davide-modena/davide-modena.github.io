@@ -1,0 +1,250 @@
+---
+import Base from '../layouts/Base.astro';
+import Stage from '../components/Stage.astro';
+import DotCover from '../components/DotCover.astro';
+import AiNote from '../components/AiNote.astro';
+import { render } from 'astro:content';
+import { getLocalized } from '../lib/content';
+import { useTranslations, path, otherLang } from '../i18n/utils';
+import type { Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+  kind: 'works' | 'lab';
+  slug: string;
+}
+const { lang, kind, slug } = Astro.props;
+const t = useTranslations(lang);
+const route = kind === 'works' ? 'work' : 'lab';
+const all = await getLocalized(kind, lang);
+const index = all.findIndex((e) => e.slug === slug);
+const entry = all[index];
+const next = all[(index + 1) % all.length];
+const { Content } = await render(entry);
+const d = entry.data as Record<string, any>;
+const sectionName = kind === 'works' ? t('section.work') : t('section.lab');
+
+const meta: { label: string; value: string; href?: string }[] =
+  kind === 'works'
+    ? [
+        { label: t('work.client'), value: d.client },
+        { label: t('work.year'), value: d.year },
+        { label: t('work.role'), value: d.role.join(', ') },
+        { label: t('work.stack'), value: d.stack.join(', ') },
+        { label: t('work.link'), value: `${d.domain} ↗`, href: d.url },
+      ]
+    : [
+        { label: t('lab.kind'), value: d.kind },
+        { label: t('work.year'), value: d.year },
+        { label: t('work.stack'), value: d.stack.join(', ') },
+        ...(d.live ? [{ label: t('lab.live'), value: `${new URL(d.live).host} ↗`, href: d.live }] : []),
+        ...(d.repo ? [{ label: t('lab.repo'), value: 'github ↗', href: d.repo }] : []),
+      ];
+---
+
+<Base
+  lang={lang}
+  alternate={path(route, otherLang(lang), slug)}
+  title={d.title}
+  description={kind === 'works' ? d.summary : d.tagline}
+  path={`~/${sectionName}/${slug}`}
+>
+  <article class="detail" data-section={`~/${sectionName}/${slug}`}>
+    <div class="frame">
+      <nav class="crumbs mono" data-reveal>
+        <a href={path(route, lang)} class="back">← {kind === 'works' ? t('work.back') : t('lab.back')}</a>
+        <span class="dim">{String(index + 1).padStart(2, '0')} / {String(all.length).padStart(2, '0')}</span>
+      </nav>
+
+      <header class="head">
+        <h1 data-reveal>{d.title}</h1>
+        <p class="lead" data-reveal style="--d:.08s">{kind === 'works' ? d.summary : d.tagline}</p>
+        {entry.fallback && <p class="fallback mono" data-reveal>{t('lang.fallback')}</p>}
+      </header>
+
+      <dl class="meta" data-reveal style="--d:.15s">
+        {
+          meta.map((m) => (
+            <div>
+              <dt class="label">{m.label}</dt>
+              <dd>
+                {m.href ? (
+                  <a href={m.href} target="_blank" rel="noopener" class="link">
+                    {m.value}
+                  </a>
+                ) : (
+                  m.value
+                )}
+              </dd>
+            </div>
+          ))
+        }
+      </dl>
+
+      <div class="visual" data-reveal style="--d:.2s">
+        {
+          kind === 'works' ? (
+            <div class="stage-box" data-scrub>
+              <Stage shot={d.shot} shotMobile={d.shotMobile} domain={d.domain} title={d.title} eager />
+            </div>
+          ) : (
+            <div class="lab-visual lab-card">
+              <DotCover seed={slug} kind={d.kind} glyph={d.glyph} cols={72} />
+            </div>
+          )
+        }
+      </div>
+
+      <div class="content">
+        <aside class="side mono">
+          {d.ai && <AiNote lang={lang} />}
+        </aside>
+        <div class="prose">
+          <Content />
+        </div>
+      </div>
+    </div>
+
+    {
+      next && next.slug !== slug && (
+        <a href={path(route, lang, next.slug)} class="next" data-nav-item>
+          <div class="frame next-inner">
+            <span class="label">{t('work.next')} →</span>
+            <span class="next-title" data-scramble-hover>
+              {next.data.title}
+            </span>
+          </div>
+        </a>
+      )
+    }
+  </article>
+</Base>
+
+<style>
+  .detail {
+    padding-top: clamp(32px, 5vw, 64px);
+  }
+  .crumbs {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12.5px;
+    color: var(--fg-2);
+  }
+  .back:hover {
+    color: var(--accent);
+  }
+  .head {
+    margin: clamp(40px, 7vw, 96px) 0 clamp(40px, 5vw, 64px);
+  }
+  h1 {
+    font-size: clamp(56px, 10vw, 150px);
+    letter-spacing: -0.055em;
+    line-height: 0.9;
+    margin-left: -0.04em;
+  }
+  .lead {
+    margin-top: 28px;
+    max-width: 40ch;
+    font-size: clamp(19px, 1.9vw, 26px);
+    line-height: 1.35;
+    letter-spacing: -0.015em;
+    color: var(--fg-2);
+  }
+  .fallback {
+    margin-top: 20px;
+    font-size: 12px;
+    color: var(--accent);
+  }
+  .meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 0;
+    margin: 0 0 clamp(40px, 5vw, 64px);
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .meta div {
+    padding: 18px 20px 18px 0;
+  }
+  .meta div + div {
+    padding-left: 20px;
+    border-left: 1px solid var(--line);
+  }
+  .meta dd {
+    margin: 6px 0 0;
+    font-size: 14.5px;
+  }
+  /* il mockup deve stare tutto nello schermo anche su monitor bassi */
+  .stage-box {
+    width: min(100%, calc((100svh - var(--header-h) - var(--status-h) - 90px) * 1.5));
+    margin-inline: auto;
+    padding-bottom: 4%;
+  }
+  .lab-visual {
+    border: 1px solid var(--line-2);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .lab-visual :global(.cover) {
+    aspect-ratio: 21 / 9;
+    border: 0;
+  }
+  .lab-visual :global(.glyph) {
+    font-size: 64px;
+    left: 32px;
+    bottom: 24px;
+  }
+  .content {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2.2fr);
+    gap: 48px;
+    padding: clamp(56px, 8vw, 120px) 0;
+  }
+  .side {
+    position: sticky;
+    top: calc(var(--header-h) + 24px);
+    align-self: start;
+  }
+  .next {
+    display: block;
+    border-top: 1px solid var(--line);
+    transition: background 0.4s var(--ease);
+  }
+  .next:hover {
+    background: var(--bg-2);
+  }
+  .next-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-block: clamp(56px, 8vw, 110px);
+  }
+  .next-title {
+    font-size: clamp(44px, 8vw, 120px);
+    letter-spacing: -0.05em;
+    line-height: 0.95;
+    font-weight: 500;
+  }
+  .next:hover .next-title {
+    color: var(--accent);
+  }
+  @media (max-width: 900px) {
+    .stage-box {
+      width: 100%;
+      padding-bottom: 10%;
+    }
+  }
+  @media (max-width: 800px) {
+    .content {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 24px;
+    }
+    .side {
+      position: static;
+    }
+    .meta div + div {
+      padding-left: 0;
+      border-left: 0;
+    }
+  }
+</style>

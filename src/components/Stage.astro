@@ -1,0 +1,65 @@
+---
+// Computer + telefono sovrapposti: il sito scorre dentro entrambi mentre si scorre la pagina.
+import BrowserMockup from './BrowserMockup.astro';
+import PhoneMockup from './PhoneMockup.astro';
+import type { ImageMetadata } from 'astro';
+
+interface Props {
+  shot: ImageMetadata;
+  shotMobile?: ImageMetadata;
+  domain: string;
+  title: string;
+  eager?: boolean;
+  /** lato su cui sporge il telefono */
+  phoneSide?: 'left' | 'right';
+}
+const { shot, shotMobile, domain, title, eager, phoneSide = 'left' } = Astro.props;
+---
+
+<div class:list={['stage', `phone-${phoneSide}`, { 'has-phone': !!shotMobile }]}>
+  <div class="desk">
+    <BrowserMockup shot={shot} domain={domain} alt={`${title} — ${domain}`} eager={eager} />
+  </div>
+  {
+    shotMobile && (
+      <div class="mobile">
+        <PhoneMockup shot={shotMobile} alt={`${title} — mobile`} />
+      </div>
+    )
+  }
+</div>
+
+<style>
+  .stage {
+    position: relative;
+    transform-origin: 50% 100%;
+    /* --e (0→1) arriva dallo script: entrata in prospettiva */
+    transform: perspective(1600px) rotateX(calc((1 - var(--e, 1)) * 10deg)) scale(calc(0.94 + var(--e, 1) * 0.06));
+  }
+  .has-phone.phone-left .desk {
+    margin-left: 9%;
+  }
+  .has-phone.phone-right .desk {
+    margin-right: 9%;
+  }
+  .mobile {
+    position: absolute;
+    bottom: -9%;
+    width: 21%;
+    min-width: 110px;
+    /* il telefono si alza un po' più del computer: parallasse */
+    transform: translateY(calc((0.5 - var(--p, 0.5)) * 60px));
+  }
+  .phone-left .mobile {
+    left: 0;
+  }
+  .phone-right .mobile {
+    right: 0;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .stage,
+    .mobile {
+      transform: none;
+    }
+  }
+</style>

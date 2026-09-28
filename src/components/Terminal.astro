@@ -1,0 +1,530 @@
+---
+import { useTranslations, path, age } from '../i18n/utils';
+import { getLocalized } from '../lib/content';
+import { contact, skills, offline, experience, location } from '../data/profile';
+import type { Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+  alternate: string;
+}
+const { lang, alternate } = Astro.props;
+const t = useTranslations(lang);
+const works = await getLocalized('works', lang);
+const lab = await getLocalized('lab', lang);
+
+const data = {
+  lang,
+  alternate,
+  age: age(),
+  home: path('home', lang),
+  dirs: {
+    [lang === 'it' ? 'lavori' : 'work']: {
+      href: path('work', lang),
+      items: works.map((w) => ({ slug: w.slug, title: w.data.title, text: w.data.summary, href: path('work', lang, w.slug), year: w.data.year })),
+    },
+    lab: {
+      href: path('lab', lang),
+      items: lab.map((p) => ({ slug: p.slug, title: p.data.title, text: p.data.tagline, href: path('lab', lang, p.slug), year: p.data.year })),
+    },
+  },
+  aboutHref: path('about', lang),
+  contactHref: path('contact', lang),
+  about: `${t('about.lead', { age: age() })}\n\n${t('about.body')}`,
+  contact,
+  location,
+  skills: skills.map((s) => ({ group: s.group[lang], items: s.items })),
+  music: offline[0].items,
+  job: `${experience[0].role[lang]} @ ${experience[0].org}`,
+  copied: t('contact.copied'),
+};
+---
+
+<div class="terminal mono" role="dialog" aria-modal="false" aria-label="terminal" hidden>
+  <div class="chrome">
+    <span class="lights"><i></i><i></i><i></i></span>
+    <span class="title">davide@portfolio — zsh</span>
+    <button class="x" data-term-close aria-label="close">esc</button>
+  </div>
+  <div class="screen">
+    <div class="out"></div>
+    <label class="line">
+      <span class="ps1"><b>davide@portfolio</b> <span class="cwd">~</span> %</span>
+      <input type="text" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="command" />
+    </label>
+  </div>
+</div>
+
+<script is:inline type="application/json" id="terminal-data" set:html={JSON.stringify(data)} />
+
+<script>
+  import { copy, setTheme, setAccent, ACCENTS } from '../scripts/actions';
+
+  type Item = { slug: string; title: string; text: string; href: string; year: string };
+  type Data = {
+    lang: 'it' | 'en';
+    alternate: string;
+    age: number;
+    home: string;
+    dirs: Record<string, { href: string; items: Item[] }>;
+    aboutHref: string;
+    contactHref: string;
+    about: string;
+    contact: { email: string; linkedin: string; github: string };
+    location: { city: string; coords: string };
+    skills: { group: string; items: string[] }[];
+    music: string[];
+    job: string;
+    copied: string;
+  };
+
+  const D: Data = JSON.parse(document.getElementById('terminal-data')!.textContent!);
+  const it = D.lang === 'it';
+  const L = (a: string, b: string) => (it ? a : b);
+
+  const root = document.querySelector<HTMLElement>('.terminal')!;
+  const screen = root.querySelector<HTMLElement>('.screen')!;
+  const out = root.querySelector<HTMLElement>('.out')!;
+  const input = root.querySelector<HTMLInputElement>('input')!;
+  const cwdEl = root.querySelector<HTMLElement>('.cwd')!;
+
+  const aboutFile = L('chi-sono.txt', 'about.txt');
+  const contactFile = L('contatti.txt', 'contact.txt');
+  let cwd = '~';
+  const history: string[] = [];
+  let hIndex = 0;
+
+  const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+
+  function print(html = '', cls = '') {
+    const div = document.createElement('div');
+    div.className = `ln ${cls}`;
+    div.innerHTML = html || '&nbsp;';
+    out.append(div);
+  }
+  const text = (s: string, cls = '') => s.split('\n').forEach((l) => print(esc(l), cls));
+  const link = (href: string, label: string) =>
+    `<a href="${esc(href)}"${/^https?:/.test(href) ? ' target="_blank" rel="noopener"' : ''}>${esc(label)}</a>`;
+
+  function go(href: string, label?: string) {
+    print(`<span class="dim">→ ${esc(label ?? href)}</span>`);
+    setTimeout(() => (location.href = href), 350);
+  }
+
+  function resolve(arg = ''): { dir?: string; item?: Item } | null {
+    const parts = (cwd === '~' ? arg : `${cwd.slice(2)}/${arg}`).replace(/^~\/?/, '').split('/').filter(Boolean);
+    if (arg.startsWith('~')) parts.splice(0, parts.length, ...arg.replace(/^~\/?/, '').split('/').filter(Boolean));
+    if (parts.length === 0) return {};
+    const dir = D.dirs[parts[0]];
+    if (!dir) return null;
+    if (parts.length === 1) return { dir: parts[0] };
+    const item = dir.items.find((i) => i.slug === parts[1]);
+    return item ? { dir: parts[0], item } : null;
+  }
+
+  const COMMANDS: Record<string, { help: string; run: (args: string[]) => void }> = {
+    help: {
+      help: L('questo elenco', 'this list'),
+      run() {
+        print(L('comandi disponibili:', 'available commands:'), 'dim');
+        for (const [name, c] of Object.entries(COMMANDS)) if (c.help) print(`  <b>${name.padEnd(10)}</b><span class="dim">${esc(c.help)}</span>`);
+        print();
+        print(L('suggerimento: <b>tab</b> completa, <b>↑ ↓</b> scorre la cronologia.', 'tip: <b>tab</b> completes, <b>↑ ↓</b> walks history.'), 'dim');
+      },
+    },
+    whoami: {
+      help: L('chi sono, in breve', 'who I am, briefly'),
+      run() {
+        print(`<b>davide modena</b> — web developer, ${esc(D.location.city)}`);
+        print(`<span class="dim">${esc(D.job)}</span>`);
+      },
+    },
+    ls: {
+      help: L('elenca file e cartelle', 'list files and folders'),
+      run([arg]) {
+        const r = resolve(arg);
+        if (!r) return print(`ls: ${esc(arg)}: ${L('file o cartella inesistente', 'no such file or directory')}`, 'err');
+        if (r.item) return print(esc(r.item.slug));
+        if (r.dir) return print(D.dirs[r.dir].items.map((i) => `<span class="f">${esc(i.slug)}/</span>`).join('  '));
+        print(
+          [...Object.keys(D.dirs).map((d) => `<span class="f">${d}/</span>`), aboutFile, contactFile, 'secret.txt']
+            .map((x) => (x.includes('<') ? x : esc(x)))
+            .join('  '),
+        );
+      },
+    },
+    cd: {
+      help: L('entra in una cartella (e ci va la pagina)', 'change directory (and page)'),
+      run([arg = '~']) {
+        if (arg === '..') arg = cwd.split('/').slice(0, -1).join('/') || '~';
+        if (arg === '~' || arg === '/') {
+          cwd = '~';
+          cwdEl.textContent = cwd;
+          return go(D.home, '~');
+        }
+        if (/^(contatti|contact)\/?$/.test(arg)) return go(D.contactHref, `~/${arg.replace('/', '')}`);
+        if (/^(chi-sono|about)\/?$/.test(arg)) return go(D.aboutHref, `~/${arg.replace('/', '')}`);
+        const r = resolve(arg);
+        if (!r || !r.dir) return print(`cd: ${esc(arg)}: ${L('cartella inesistente', 'no such directory')}`, 'err');
+        if (r.item) return go(r.item.href, r.item.title);
+        cwd = `~/${r.dir}`;
+        cwdEl.textContent = cwd;
+        go(D.dirs[r.dir].href, cwd);
+      },
+    },
+    cat: {
+      help: L('mostra il contenuto di un file', 'print a file'),
+      run([arg]) {
+        if (!arg) return print(L('cat: quale file?', 'cat: which file?'), 'err');
+        if (arg === aboutFile) return text(D.about);
+        if (arg === contactFile) {
+          print(`email     ${link(`mailto:${D.contact.email}`, D.contact.email)}`);
+          print(`linkedin  ${link(D.contact.linkedin, '/in/davide-modena')}`);
+          print(`github    ${link(D.contact.github, '@davide-modena')}`);
+          return;
+        }
+        if (arg === 'secret.txt') return print(L('bel tentativo. prova <b>sudo</b>.', 'nice try. try <b>sudo</b>.'));
+        const r = resolve(arg);
+        if (r?.item) {
+          print(`<b>${esc(r.item.title)}</b> <span class="dim">· ${esc(r.item.year)}</span>`);
+          text(r.item.text, 'muted');
+          print(`<span class="dim">cd ${esc(arg)} ${L('per aprire la pagina', 'to open the page')}</span>`);
+          return;
+        }
+        print(`cat: ${esc(arg)}: ${L('file inesistente', 'no such file')}`, 'err');
+      },
+    },
+    open: {
+      help: L('apre un progetto, linkedin, github o la mail', 'open a project, linkedin, github or mail'),
+      run([arg]) {
+        const ext: Record<string, string> = { linkedin: D.contact.linkedin, github: D.contact.github, mail: `mailto:${D.contact.email}` };
+        if (arg && ext[arg]) return void window.open(ext[arg], '_blank', 'noopener');
+        const item = Object.values(D.dirs).flatMap((d) => d.items).find((i) => i.slug === arg);
+        if (item) return go(item.href, item.title);
+        print(`open: ${L('prova', 'try')} linkedin · github · mail · ${esc(D.dirs.lab.items[0]?.slug ?? '')}`, 'err');
+      },
+    },
+    skills: {
+      help: L('cosa so usare', 'what I work with'),
+      run() {
+        for (const s of D.skills) print(`<span class="k">${esc(s.group.padEnd(10))}</span>${esc(s.items.join(', '))}`);
+      },
+    },
+    neofetch: {
+      help: L('info di sistema, ma su di me', 'system info, but it’s me'),
+      run() {
+        const art = [
+          '   ██████╗ ███╗   ███╗',
+          '   ██╔══██╗████╗ ████║',
+          '   ██║  ██║██╔████╔██║',
+          '   ██║  ██║██║╚██╔╝██║',
+          '   ██████╔╝██║ ╚═╝ ██║',
+          '   ╚═════╝ ╚═╝     ╚═╝',
+          '',
+          '',
+          '',
+        ];
+        const info = [
+          `<b>davide</b>@<b>portfolio</b>`,
+          '<span class="dim">-----------------</span>',
+          `<span class="k">os</span>        Astro on Netlify`,
+          `<span class="k">host</span>      ${esc(D.location.city)}, ${esc(D.location.coords)}`,
+          `<span class="k">uptime</span>    ${D.age} ${L('anni', 'years')}`,
+          `<span class="k">shell</span>     ${esc(D.skills[0].items.slice(0, 4).join(' · '))}`,
+          `<span class="k">packages</span>  ${Object.values(D.dirs).reduce((n, d) => n + d.items.length, 0)} ${L('progetti', 'projects')}`,
+          `<span class="k">music</span>     ${esc(D.music.slice(0, 4).join(', '))}`,
+          `<span class="pal"><i></i><i></i><i></i><i></i><i></i><i></i></span>`,
+        ];
+        art.forEach((a, i) => print(`<span class="art">${esc(a.padEnd(26))}</span>${info[i] ?? ''}`));
+      },
+    },
+    contact: {
+      help: L('come scrivermi', 'how to reach me'),
+      run() {
+        COMMANDS.cat.run([contactFile]);
+        print(`<span class="dim">${L('oppure', 'or')} <b>cd ${L('contatti', 'contact')}</b> ${L('per il form', 'for the form')}</span>`);
+      },
+    },
+    hire: {
+      help: L('la scelta giusta', 'the right call'),
+      run() {
+        print(L('ottima scelta. apro la mail…', 'great choice. opening your mail…'), 'ok');
+        copy(D.contact.email, D.copied);
+        setTimeout(() => (location.href = `mailto:${D.contact.email}`), 600);
+      },
+    },
+    theme: {
+      help: 'light | dark',
+      run([arg]) {
+        const next = arg === 'light' || arg === 'dark' ? arg : document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
+        setTheme(next);
+        print(`theme → ${next}`, 'dim');
+      },
+    },
+    accent: {
+      help: ACCENTS.join(' | '),
+      run([arg]) {
+        const next = setAccent(ACCENTS.includes(arg as never) ? (arg as (typeof ACCENTS)[number]) : undefined);
+        print(`accent → <span class="k">${next}</span>`);
+      },
+    },
+    lang: {
+      help: 'it | en',
+      run([arg]) {
+        if (arg === D.lang) return print(L('già in italiano.', 'already in English.'), 'dim');
+        go(D.alternate, arg ?? (it ? 'en' : 'it'));
+      },
+    },
+    pwd: { help: '', run: () => print(`/home/davide/${cwd.replace(/^~\/?/, '')}`) },
+    date: { help: '', run: () => print(new Date().toLocaleString(it ? 'it-IT' : 'en-GB', { timeZone: 'Europe/Rome' })) },
+    echo: { help: '', run: (args) => print(esc(args.join(' '))) },
+    history: { help: '', run: () => history.forEach((h, i) => print(`<span class="dim">${String(i + 1).padStart(4)}</span>  ${esc(h)}`)) },
+    sudo: {
+      help: '',
+      run: () => print(L('davide non è nel file sudoers. L’incidente verrà segnalato.', 'davide is not in the sudoers file. This incident will be reported.'), 'err'),
+    },
+    rm: { help: '', run: () => print(L('no.', 'no.'), 'err') },
+    vim: { help: '', run: () => print(L('tranquillo, per uscire basta :q', 'relax, :q gets you out'), 'dim') },
+    exit: { help: L('chiude il terminale', 'close the terminal'), run: () => close() },
+    clear: { help: L('pulisce lo schermo', 'clear the screen'), run: () => (out.innerHTML = '') },
+  };
+
+  function exec(raw: string) {
+    const line = raw.trim();
+    print(`<span class="ps1"><b>davide@portfolio</b> ${esc(cwd)} %</span> ${esc(line)}`);
+    if (!line) return;
+    history.push(line);
+    hIndex = history.length;
+    const [cmd, ...args] = line.split(/\s+/);
+    const c = COMMANDS[cmd.toLowerCase()];
+    if (c) c.run(args);
+    else print(`zsh: command not found: ${esc(cmd)} <span class="dim">— ${L('prova', 'try')} <b>help</b></span>`, 'err');
+  }
+
+  function complete() {
+    const v = input.value;
+    const parts = v.split(/\s+/);
+    let pool: string[];
+    if (parts.length <= 1) pool = Object.keys(COMMANDS).filter((k) => COMMANDS[k].help);
+    else {
+      const all = Object.entries(D.dirs).flatMap(([d, x]) => [`${d}/`, ...x.items.map((i) => `${d}/${i.slug}`)]);
+      const local = cwd === '~' ? [] : D.dirs[cwd.slice(2)].items.map((i) => i.slug);
+      pool = [...local, ...all, aboutFile, contactFile, 'linkedin', 'github', 'mail', 'light', 'dark', ...ACCENTS];
+    }
+    const last = parts[parts.length - 1];
+    const hits = pool.filter((p) => p.startsWith(last));
+    if (hits.length === 1) {
+      parts[parts.length - 1] = hits[0];
+      input.value = parts.join(' ') + (parts.length === 1 ? ' ' : '');
+    } else if (hits.length > 1) {
+      print(`<span class="dim">${hits.map(esc).join('  ')}</span>`);
+      screen.scrollTop = screen.scrollHeight;
+    }
+  }
+
+  let greeted = false;
+  function open() {
+    root.hidden = false;
+    requestAnimationFrame(() => root.classList.add('open'));
+    if (!greeted) {
+      greeted = true;
+      print(`<span class="dim">Last login: ${new Date().toDateString()} on ttys001</span>`);
+      print(L('ciao 👋 scrivi <b>help</b> per iniziare, oppure <b>neofetch</b>.', 'hi 👋 type <b>help</b> to start, or <b>neofetch</b>.'));
+      print();
+    }
+    setTimeout(() => input.focus(), 50);
+  }
+  function close() {
+    root.classList.remove('open');
+    setTimeout(() => (root.hidden = true), 300);
+    input.blur();
+  }
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      exec(input.value);
+      input.value = '';
+      screen.scrollTop = screen.scrollHeight;
+    } else if (e.key === 'Tab') {
+      e.preventDefault();
+      complete();
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      hIndex = Math.max(0, hIndex - 1);
+      input.value = history[hIndex] ?? '';
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      hIndex = Math.min(history.length, hIndex + 1);
+      input.value = history[hIndex] ?? '';
+    } else if (e.key === 'Escape' || (e.key === '`' && !input.value)) {
+      e.preventDefault();
+      close();
+    } else if (e.key === 'l' && e.ctrlKey) {
+      e.preventDefault();
+      out.innerHTML = '';
+    }
+  });
+  screen.addEventListener('click', () => getSelection()?.isCollapsed && input.focus());
+  root.querySelector('[data-term-close]')!.addEventListener('click', close);
+  addEventListener('terminal:open', open);
+  addEventListener('terminal:toggle', () => (root.hidden ? open() : close()));
+</script>
+
+<style>
+  .terminal {
+    position: fixed;
+    left: 50%;
+    top: calc(var(--header-h) + 8px);
+    width: min(860px, calc(100vw - 24px));
+    height: min(460px, calc(100dvh - var(--header-h) - var(--status-h) - 32px));
+    z-index: 80;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--line-2);
+    border-radius: 12px;
+    background: color-mix(in srgb, #0c0c0c 94%, transparent);
+    backdrop-filter: blur(16px);
+    color: #d6d6d6;
+    font-size: 13px;
+    line-height: 1.55;
+    box-shadow: var(--shadow);
+    transform: translate(-50%, -12px);
+    opacity: 0;
+    transition:
+      opacity 0.25s var(--ease),
+      transform 0.3s var(--ease);
+    --accent-t: var(--accent);
+  }
+  /* senza questa regola il display:flex sopra batte l'attributo hidden e il terminale
+     chiuso resta invisibile ma sopra la pagina, a rubare click e selezione */
+  .terminal[hidden] {
+    display: none;
+  }
+  .terminal:global(.open) {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+  .chrome {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-bottom: 1px solid #222;
+    font-size: 11.5px;
+    color: #777;
+  }
+  .lights {
+    display: flex;
+    gap: 6px;
+  }
+  .lights i {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #333;
+  }
+  .lights i:first-child {
+    background: #ff5f57;
+  }
+  .title {
+    flex: 1;
+    text-align: center;
+  }
+  .x {
+    color: #777;
+    font-size: 11px;
+  }
+  .screen {
+    flex: 1;
+    overflow-y: auto;
+    padding: 14px 16px;
+    cursor: text;
+  }
+  .out :global(.ln) {
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .out :global(b) {
+    color: #fff;
+    font-weight: 500;
+  }
+  .out :global(.dim) {
+    color: #777;
+  }
+  .out :global(.muted) {
+    color: #aaa;
+  }
+  .out :global(.err) {
+    color: #ff8a70;
+  }
+  .out :global(.ok) {
+    color: #3ddc84;
+  }
+  .out :global(.k),
+  .out :global(.f) {
+    color: var(--accent-t);
+  }
+  .out :global(.art) {
+    color: var(--accent-t);
+    white-space: pre;
+  }
+  .out :global(a) {
+    color: #fff;
+    text-decoration: underline;
+    text-decoration-color: #555;
+    text-underline-offset: 3px;
+  }
+  .out :global(.pal) {
+    display: inline-flex;
+    gap: 0;
+  }
+  .out :global(.pal i) {
+    width: 18px;
+    height: 12px;
+    display: inline-block;
+  }
+  .out :global(.pal i:nth-child(1)) {
+    background: #0a0a0a;
+  }
+  .out :global(.pal i:nth-child(2)) {
+    background: #2c2c2c;
+  }
+  .out :global(.pal i:nth-child(3)) {
+    background: #6e6e6e;
+  }
+  .out :global(.pal i:nth-child(4)) {
+    background: #ededed;
+  }
+  .out :global(.pal i:nth-child(5)) {
+    background: var(--accent);
+  }
+  .out :global(.pal i:nth-child(6)) {
+    background: #3ddc84;
+  }
+  .ps1,
+  .out :global(.ps1) {
+    color: #777;
+    white-space: nowrap;
+  }
+  .ps1 b,
+  .out :global(.ps1 b) {
+    color: var(--accent-t);
+    font-weight: 400;
+  }
+  .line {
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+  }
+  input {
+    flex: 1;
+    min-width: 0;
+    background: none;
+    border: 0;
+    outline: 0;
+    color: #fff;
+    font: inherit;
+    caret-color: var(--accent-t);
+    padding: 0;
+  }
+</style>
