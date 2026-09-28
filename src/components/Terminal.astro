@@ -283,8 +283,18 @@ const data = {
       },
     },
     mini: {
-      help: 'on | off | size s|m|l',
+      help: 'on | off | size s|m|l | status',
       run([arg, size]) {
+        if (arg === 'status') {
+          const ev = new CustomEvent('mini', { detail: 'status' }) as CustomEvent & { result?: { enabled: boolean; state: string; size: number } };
+          dispatchEvent(ev);
+          const r = ev.result;
+          if (!r) return print(L('mini-me non caricato', 'mini-me not loaded'), 'err');
+          print(`<span class="k">enabled</span>  ${r.enabled}`);
+          print(`<span class="k">state</span>    ${esc(r.state)}`);
+          print(`<span class="k">size</span>     ${r.size}×`);
+          return;
+        }
         if (arg === 'on' || arg === 'off') {
           dispatchEvent(new CustomEvent('mini', { detail: arg }));
           return print(`mini-me → ${arg}`, 'dim');
@@ -293,7 +303,7 @@ const data = {
           dispatchEvent(new CustomEvent('mini', { detail: `size ${size}` }));
           return print(`mini-me size → ${size}`, 'dim');
         }
-        print(L('uso: mini on | off | size s|m|l', 'usage: mini on | off | size s|m|l'), 'err');
+        print(L('uso: mini on | off | size s|m|l | status', 'usage: mini on | off | size s|m|l | status'), 'err');
       },
     },
     lang: {
@@ -337,7 +347,7 @@ const data = {
     else {
       const all = Object.entries(D.dirs).flatMap(([d, x]) => [`${d}/`, ...x.items.map((i) => `${d}/${i.slug}`)]);
       const local = cwd === '~' ? [] : D.dirs[cwd.slice(2)].items.map((i) => i.slug);
-      pool = [...local, ...all, aboutFile, contactFile, 'linkedin', 'github', 'mail', 'light', 'dark', 'on', 'off', 'size', ...ACCENTS];
+      pool = [...local, ...all, aboutFile, contactFile, 'linkedin', 'github', 'mail', 'light', 'dark', 'on', 'off', 'size', 'status', ...ACCENTS];
     }
     const last = parts[parts.length - 1];
     const hits = pool.filter((p) => p.startsWith(last));

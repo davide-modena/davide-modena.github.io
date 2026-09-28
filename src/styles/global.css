@@ -442,7 +442,8 @@ kbd {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *,
+  /* il mini-me resta animato anche qui: si spegne con "mini off" */
+  *:not(.mini-p),
   *::before,
   *::after {
     animation-duration: 0.001ms !important;
@@ -607,6 +608,14 @@ kbd {
   display: block;
   image-rendering: pixelated;
   pointer-events: none;
+  transform-origin: 50% 100%;
+}
+/* mentre lo trascini copre la pagina: il rilascio non clicca niente sotto */
+.mini-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 61;
+  cursor: grabbing;
 }
 html.mini-hover,
 html.mini-hover * {

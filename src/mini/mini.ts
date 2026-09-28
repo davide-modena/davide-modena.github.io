@@ -24,6 +24,7 @@ type State =
   | 'sit'
   | 'sleep'
   | 'dizzy'
+  | 'bumpsit' // atterrato di sedere dopo i rimbalzi
   | 'held';
 
 const SIZES = { s: 1, m: 2, l: 3 } as const;
@@ -98,7 +99,26 @@ class Mini {
   /** sopra una card: posizione in coordinate della pagina, e timer del controllo della card */
   pageY = 0;
   platCheck = 0;
-  written = { pos: '', tf: '', flip: '' };
+  written = { pos: '', tf: '', flip: '', origin: '' };
+
+  // --- fisica da videogioco -------------------------------------------------------------------
+  /** inclinazione (rad) e velocità angolare: oscilla come un pendolo mentre lo tieni */
+  theta = 0;
+  omega = 0;
+  /** punto in cui l'hai preso, relativo all'angolo in alto a sinistra dello sprite */
+  pivotX = 0;
+  pivotY = 0;
+  ptr = { x: 0, y: 0 };
+  prevPx = 0;
+  prevVx = 0;
+  /** lanciato o caduto: rimbalza di sedere invece di atterrare in piedi */
+  tumbling = false;
+  bounces = 0;
+  hardHit = false;
+  /** schiacciamento all'impatto (1 → 0) */
+  squash = 0;
+  /** strato trasparente sopra la pagina mentre lo trascini: niente click sugli elementi sotto */
+  layer = document.createElement('div');
 
   constructor() {
     this.root.className = 'mini';
@@ -106,7 +126,9 @@ class Mini {
     this.canvas.width = W;
     this.canvas.height = H;
     this.root.append(this.canvas);
-    document.body.append(this.root);
+    this.layer.className = 'mini-layer';
+    this.layer.hidden = true;
+    document.body.append(this.layer, this.root);
     this.applySize();
     this.measure();
     this.root.hidden = true;
@@ -125,7 +147,7 @@ class Mini {
     document.addEventListener('pointerover', (e) => this.onPointerOver(e));
     document.addEventListener('pointerdown', (e) => this.onGrab(e), true);
     addEventListener('pointerup', (e) => this.onRelease(e));
-    addEventListener('mini', (e) => this.command((e as CustomEvent<string>).detail));
+    addEventListener('mini', (e) => this.command((e as CustomEvent<string>).detail, e));
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden) this.last = performance.now();
     });
@@ -225,7 +247,12 @@ class Mini {
         this.x += this.vx * dt;
         const prevY = this.y;
         this.y += this.vy * dt;
-        this.pose = this.vy < 0 ? 'jump' : 'fall';
+        if (this.tumbling) {
+          // in volo continua a girare, frenando piano
+          this.theta += this.omega * dt;
+          this.omega *= Math.pow(0.5, dt);
+          this.pose = this.bounces ? 'bump' : 'fall';
+        } else this.pose = this.vy < 0 ? 'jump' : 'fall';
         // soffitto sotto l'header: se lo lanci forte verso l'alto ci sbatte e ricade
         const ceiling = this.headerH + H * this.scale;
         if (this.y < ceiling && this.vy < 0) {
@@ -244,10 +271,22 @@ class Mini {
           for (const el of this.target ? [this.target] : this.platforms()) {
             const r = el.getBoundingClientRect();
             if (prevY <= r.top + 2 && this.y >= r.top && this.x > r.left + 6 && this.x < r.right - 6) {
-              return this.landOn('platform', el, r.top);
+              return this.touch('platform', el, r.top);
             }
           }
-          if (this.y >= floor) this.landOn('floor', null, floor);
+          if (this.y >= floor) this.touch('floor', null, floor);
+        }
+        break;
+      }
+      case 'bumpsit': {
+        // seduto per terra dopo i rimbalzi: scivola ancora un po' e si riprende
+        this.pose = this.hardHit ? 'bumpDizzy' : 'bump';
+        this.x = clamp(this.x + this.vx * dt, this.half, innerWidth - this.half);
+        this.vx *= Math.pow(0.03, dt);
+        if (this.t > this.duration) {
+          this.tumbling = false;
+          if (this.on === 'platform') this.set('sit', rand(5, 9));
+          else this.set('idle');
         }
         break;
       }
@@ -282,14 +321,28 @@ class Mini {
           this.particle('z', 'zz');
         }
         break;
-      case 'held':
+      case 'held': {
         this.pose = 'held';
+        // pendolo: l'accelerazione orizzontale del mouse lo fa oscillare, la gravità lo riporta giù
+        const step = Math.max(dt, 0.001);
+        const vxp = (this.ptr.x - this.prevPx) / step;
+        const ax = (vxp - this.prevVx) / step;
+        this.prevPx = this.ptr.x;
+        this.prevVx = vxp;
+        this.omega += (-42 * Math.sin(this.theta) - 3.5 * this.omega + clamp(ax, -60000, 60000) * 0.0045) * dt;
+        this.theta = clamp(this.theta + this.omega * dt, -1.2, 1.2);
+        // il punto preso resta sotto il puntatore
+        this.x = this.ptr.x - this.pivotX + this.half;
+        this.y = this.ptr.y - this.pivotY + H * this.scale;
         break;
+      }
       case 'idle':
         this.pose = 'idle';
         this.idle();
         break;
     }
+
+    this.squash = Math.max(0, this.squash - dt * 4);
 
     // occhi: ogni tanto sbatte le palpebre
     this.blinkIn -= dt;
@@ -381,12 +434,43 @@ class Mini {
   }
 
   fall() {
+    this.tumbling = false;
     this.on = 'air';
     this.platform = null;
     this.target = null;
     this.vx = 0;
     this.vy = 0;
     this.set('air');
+  }
+
+  /** tocca terra: se è stato lanciato rimbalza di sedere, altrimenti atterra */
+  touch(on: 'floor' | 'platform', el: Element | null, y: number) {
+    if (!this.tumbling) return this.landOn(on, el, y);
+    if (!this.bounces) this.hardHit = this.vy > 1300;
+    if (this.vy > 320) {
+      // rimbalzo: ogni volta più basso, e smette di girare
+      if (!this.bounces && this.hardHit) this.particle('✦', 'stars', 3);
+      this.bounces++;
+      this.y = y;
+      this.vy = -this.vy * 0.42;
+      this.vx *= 0.7;
+      this.theta = 0;
+      this.omega = 0;
+      this.squash = 1;
+      this.target = el;
+      return;
+    }
+    this.on = on;
+    this.platform = el;
+    this.target = null;
+    this.y = y;
+    this.pageY = y + scrollY;
+    this.platCheck = 0.1;
+    this.vy = 0;
+    this.theta = 0;
+    this.omega = 0;
+    this.squash = 0.7;
+    this.set('bumpsit', this.hardHit ? 2.2 : 0.9);
   }
 
   landOn(on: 'floor' | 'platform', el: Element | null, y: number) {
@@ -401,6 +485,7 @@ class Mini {
     this.vy = 0;
     this.next = hard ? 'dizzy' : on === 'platform' && Math.random() < 0.7 ? 'sit' : 'idle';
     if (hard) this.particle('✦', 'stars', 3);
+    this.squash = hard ? 1 : 0.55;
     this.set('land');
   }
 
@@ -428,8 +513,7 @@ class Mini {
       const now = performance.now();
       this.drag.samples.push([e.clientX, e.clientY, now]);
       while (this.drag.samples.length > 2 && now - this.drag.samples[0][2] > 90) this.drag.samples.shift();
-      this.x = e.clientX + this.drag.dx;
-      this.y = e.clientY + this.drag.dy;
+      this.ptr = { x: e.clientX, y: e.clientY };
       return;
     }
     if (this.state === 'sleep' && Math.hypot(e.clientX - this.x, e.clientY - (this.y - 40)) < 110) this.wake();
@@ -463,6 +547,18 @@ class Mini {
     e.preventDefault();
     e.stopPropagation();
     this.drag = { dx: this.x - e.clientX, dy: this.y - e.clientY, samples: [[e.clientX, e.clientY, performance.now()]] };
+    // lo tieni per il punto che hai preso (lo sprite in piedi è più alto di quello seduto)
+    const standTop = this.y - H * this.scale;
+    this.pivotX = clamp(e.clientX - (this.x - this.half), 0, W * this.scale);
+    this.pivotY = clamp(e.clientY - standTop, 0, H * this.scale);
+    this.ptr = { x: e.clientX, y: e.clientY };
+    this.prevPx = e.clientX;
+    this.prevVx = 0;
+    this.theta = 0;
+    this.omega = 0;
+    this.tumbling = true;
+    this.bounces = 0;
+    this.layer.hidden = false;
     this.on = 'air';
     this.platform = null;
     this.target = null;
@@ -483,6 +579,14 @@ class Mini {
     this.drag = null;
     this.root.classList.remove('grabbed');
     document.documentElement.classList.remove('mini-grabbing');
+    this.layer.hidden = true;
+    // il click che segue il rilascio non deve arrivare agli elementi sotto
+    const eat = (ev: Event) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+    };
+    addEventListener('click', eat, { capture: true, once: true });
+    setTimeout(() => removeEventListener('click', eat, { capture: true }), 350);
     this.set('air');
   }
 
@@ -496,8 +600,12 @@ class Mini {
     return store.get('mini') !== 'off';
   }
 
-  command(cmd: string) {
+  command(cmd: string, ev?: Event) {
     const [name, arg] = cmd.split(' ');
+    if (name === 'status') {
+      if (ev) (ev as Event & { result?: unknown }).result = { enabled: this.enabled, state: this.state, size: this.scale };
+      return;
+    }
     if (name === 'off') {
       store.set('mini', 'off');
       if (this.state !== 'hidden') this.leave();
@@ -541,7 +649,7 @@ class Mini {
   draw(force = false) {
     if (this.state === 'hidden') return;
     // animazione: ogni posa ha il suo ritmo
-    const speeds: Record<string, number> = { run: 0.075, idle: 0.6, wave: 0.22, sit: 1.4, sleep: 1, dizzy: 0.16, held: 0.18 };
+    const speeds: Record<string, number> = { run: 0.075, idle: 0.6, wave: 0.22, sit: 1.4, sleep: 1, dizzy: 0.16, held: 0.12 };
     this.frameT += 1 / 60;
     if (this.frameT > (speeds[this.pose] ?? 0.2)) {
       this.frameT = 0;
@@ -568,9 +676,15 @@ class Mini {
     const onPage = this.on === 'platform' && this.state !== 'held';
     const pos = onPage ? 'absolute' : 'fixed';
     const top = onPage ? this.pageY - (seated ? SIT_ROW : H) * this.scale : this.vTop;
-    const tf = `translate3d(${left.toFixed(1)}px, ${top.toFixed(1)}px, 0)`;
-    const flip = this.facing < 0 ? 'scaleX(-1)' : '';
+    const rot = Math.abs(this.theta) > 0.002 ? ` rotate(${this.theta.toFixed(3)}rad)` : '';
+    const tf = `translate3d(${left.toFixed(1)}px, ${top.toFixed(1)}px, 0)${rot}`;
+    // schiacciato all'impatto, allungato un filo mentre sale veloce
+    const sq = this.squash * 0.22;
+    const stretch = this.state === 'air' && this.vy < -600 ? 0.08 : 0;
+    const flip = `scale(${((this.facing < 0 ? -1 : 1) * (1 + sq - stretch)).toFixed(3)}, ${(1 - sq + stretch).toFixed(3)})`;
+    const origin = `${this.pivotX.toFixed(0)}px ${this.pivotY.toFixed(0)}px`;
     if (pos !== this.written.pos) this.root.style.position = this.written.pos = pos;
+    if (origin !== this.written.origin) this.root.style.transformOrigin = this.written.origin = origin;
     if (tf !== this.written.tf) this.root.style.transform = this.written.tf = tf;
     if (flip !== this.written.flip) this.canvas.style.transform = this.written.flip = flip;
   }
@@ -598,9 +712,8 @@ class Mini {
 
 // --- avvio -------------------------------------------------------------------------------------
 
-const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const mini = new Mini();
 
-// arriva da solo pochi secondi dopo l'apertura di ogni pagina
-// (su telefono entra, saluta e se ne va)
-if (mini.enabled && !reduced) setTimeout(() => mini.state === 'hidden' && mini.show(), rand(2000, 3000));
+// arriva da solo pochi secondi dopo l'apertura di ogni pagina (su telefono entra, saluta e se ne va).
+// Compare anche con "riduci movimento" attivo nel sistema: si spegne con "mini off" o da ctrl+k.
+if (mini.enabled) setTimeout(() => mini.state === 'hidden' && mini.show(), rand(2000, 3000));

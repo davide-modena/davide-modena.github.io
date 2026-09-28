@@ -184,6 +184,9 @@ export const POSES: Record<string, Pose[]> = {
     { face: 'dizzy', hx: -1, back: [[-3, 3], [-6, 5]], front: [[3, 3], [6, 5]], legB: [[-1, 6], [-3, 12]], legF: [[1, 6], [3, 12]] },
     { face: 'dizzy', hx: 1, back: [[-3, 3], [-6, 5]], front: [[3, 3], [6, 5]], legB: [[-1, 6], [-3, 12]], legF: [[1, 6], [3, 12]] },
   ],
+  // caduto di sedere: gambe in avanti, mani a terra dietro
+  bump: [{ face: 'wow', dy: 6, back: [[-3, 4], [-6, 8]], front: [[3, 4], [6, 8]], legB: [[5, 1], [10, 1]], legF: [[6, 0], [11, -1]] }],
+  bumpDizzy: [{ face: 'dizzy', dy: 6, back: [[-3, 4], [-6, 8]], front: [[3, 4], [6, 8]], legB: [[5, 1], [10, 1]], legF: [[6, 0], [11, -1]] }],
   // preso col mouse: braccia su, gambe che penzolano
   held: [
     { face: 'wow', back: [[-3, -4], [-6, -11]], front: [[4, -4], [7, -11]], legB: [[-1, 6], [-1, 12]], legF: [[1, 6], [2, 12]] },
@@ -193,7 +196,7 @@ export const POSES: Record<string, Pose[]> = {
 
 /** nelle pose sedute, la riga dello sprite che poggia sul bordo (sotto le cosce) */
 export const SIT_ROW = 45;
-export const SEATED = new Set(['sit', 'sleep']);
+export const SEATED = new Set(['sit', 'sleep', 'bump', 'bumpDizzy']);
 
 // --- disegno ---------------------------------------------------------------------------------
 
