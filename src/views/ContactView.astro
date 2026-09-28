@@ -11,6 +11,9 @@ interface Props {
 const { lang } = Astro.props;
 const t = useTranslations(lang);
 const topics = t('contact.form.topics').split('|');
+// TODO form nascosto finché il sito è su GitHub Pages (Netlify Forms lì non funziona):
+// da riattivare passando a Netlify o collegando Web3Forms/Formspree.
+const FORM_ENABLED = false;
 const steps = t('contact.steps')
   .split(';')
   .map((s) => s.split('|'));
@@ -27,9 +30,9 @@ const steps = t('contact.steps')
 
   <section class="section list">
     <span class="cross l"></span><span class="cross r"></span>
-    <div class="frame layout">
+    <div class:list={['frame layout', { 'no-form': !FORM_ENABLED }]}>
       <!-- Netlify Forms: il form viene rilevato al deploy grazie a data-netlify -->
-      <form
+      {FORM_ENABLED && (<form
         name="contatti"
         method="POST"
         data-netlify="true"
@@ -81,7 +84,7 @@ const steps = t('contact.steps')
         <p class="error mono" hidden>
           {t('contact.form.error')} <a href={`mailto:${contact.email}`}>{contact.email}</a>
         </p>
-      </form>
+      </form>)}
 
       <aside class="direct" data-reveal style="--d:.1s">
         <p class="label">{t('contact.direct')}</p>
@@ -139,7 +142,10 @@ const steps = t('contact.steps')
   }
 
   // invio senza ricaricare la pagina (Netlify accetta un POST urlencoded su "/")
-  const form = document.querySelector<HTMLFormElement>('form.form')!;
+  const form = document.querySelector<HTMLFormElement>('form.form');
+  if (form) initForm(form);
+
+  function initForm(form: HTMLFormElement) {
   const result = form.querySelector<HTMLElement>('.result')!;
   const error = form.querySelector<HTMLElement>('.error')!;
   const button = form.querySelector<HTMLButtonElement>('button[type=submit]')!;
@@ -162,6 +168,7 @@ const steps = t('contact.steps')
       button.innerHTML = label;
     }
   });
+  }
 </script>
 
 <style>
@@ -173,6 +180,10 @@ const steps = t('contact.steps')
     grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
     gap: clamp(40px, 7vw, 110px);
     align-items: start;
+  }
+  .no-form {
+    grid-template-columns: minmax(0, 1fr);
+    max-width: 720px;
   }
   .form {
     display: flex;
