@@ -48,7 +48,7 @@ const flip = index % 2 === 1;
         <a href={d.url} class="btn up" target="_blank" rel="noopener">{d.domain} <span class="arrow">↗</span></a>
       </div>
       <div class="progress mono" aria-hidden="true">
-        <span class="bar"><span></span></span>
+        <span class="bar"><span data-scrub-bar></span></span>
         <span class="pct" data-scrub-pct>0%</span>
       </div>
     </div>
@@ -142,7 +142,7 @@ const flip = index % 2 === 1;
     inset: 0;
     background: var(--accent);
     transform-origin: left;
-    transform: scaleX(var(--p, 0));
+    transform: scaleX(0);
   }
   .pct {
     width: 4ch;

@@ -57,7 +57,7 @@ const altLang = lang === 'it' ? 'en' : 'it';
           accent = localStorage.getItem('accent');
         } catch (e) {}
         d.dataset.theme = saved === 'light' ? 'light' : 'dark';
-        if (accent === 'blue' || accent === 'azure') d.dataset.accent = accent;
+        if (accent === 'blue' || accent === 'azure' || accent === 'orange') d.dataset.accent = accent;
       })();
     </script>
   </head>
@@ -81,6 +81,7 @@ const altLang = lang === 'it' ? 'en' : 'it';
       import '../scripts/keys';
       import '../scripts/toast';
       import '../scripts/scrub';
+      import '../mini/mini';
     </script>
   </body>
 </html>

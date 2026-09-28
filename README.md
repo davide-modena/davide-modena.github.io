@@ -36,4 +36,4 @@ la aggiunge anche a un singolo progetto.
 ## Easter egg
 
 `ctrl k` cerca ovunque · `` ` `` apre il terminale · `j` `k` scorrono i progetti · `g` + `h/w/l/a/c` naviga · `t` tema · `?` scorciatoie.
-Nel terminale `accent violet|blue|azure` cambia il colore d'accento (resta salvato nel browser).
+Nel terminale `accent violet|blue|azure|orange` cambia il colore d'accento (resta salvato nel browser).

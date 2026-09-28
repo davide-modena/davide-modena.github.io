@@ -72,6 +72,7 @@ export const ui = {
     'lab.index.ai':
       'Per alcuni ho avuto una mano dall’AI, soprattutto da <code>claude code</code>: idee, architettura e scelte restano mie.',
     'palette.accent': 'Cambia colore d’accento',
+    'palette.mini': 'Mini-me: accendi / spegni',
 
     'contact.page.title': 'Contatti',
     'contact.page.lead':
@@ -220,6 +221,7 @@ export const ui = {
     'lab.index.ai':
       'Some of them had a hand from AI, mostly <code>claude code</code>: ideas, architecture and decisions are still mine.',
     'palette.accent': 'Change accent colour',
+    'palette.mini': 'Mini-me: on / off',
 
     'contact.page.title': 'Contact',
     'contact.page.lead':

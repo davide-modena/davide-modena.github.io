@@ -18,7 +18,7 @@ export function setTheme(theme: 'light' | 'dark') {
   requestAnimationFrame(() => requestAnimationFrame(() => root.classList.remove('theme-switching')));
 }
 
-export const ACCENTS = ['violet', 'blue', 'azure'] as const;
+export const ACCENTS = ['violet', 'blue', 'azure', 'orange'] as const;
 type Accent = (typeof ACCENTS)[number];
 
 /** Imposta il colore d'accento; senza argomento passa al successivo. */
@@ -52,6 +52,14 @@ export function runAction(name: string) {
     case 'accent':
       setAccent();
       break;
+    case 'mini': {
+      let off = false;
+      try {
+        off = localStorage.getItem('mini') === 'off';
+      } catch {}
+      dispatchEvent(new CustomEvent('mini', { detail: off ? 'on' : 'off' }));
+      break;
+    }
     case 'copy-email':
       copy(data.email, data.copied);
       break;

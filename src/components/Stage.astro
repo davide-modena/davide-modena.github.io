@@ -16,13 +16,13 @@ interface Props {
 const { shot, shotMobile, domain, title, eager, phoneSide = 'left' } = Astro.props;
 ---
 
-<div class:list={['stage', `phone-${phoneSide}`, { 'has-phone': !!shotMobile }]}>
+<div class:list={['stage', `phone-${phoneSide}`, { 'has-phone': !!shotMobile }]} data-scrub-stage>
   <div class="desk">
     <BrowserMockup shot={shot} domain={domain} alt={`${title} — ${domain}`} eager={eager} />
   </div>
   {
     shotMobile && (
-      <div class="mobile">
+      <div class="mobile" data-scrub-phone>
         <PhoneMockup shot={shotMobile} alt={`${title} — mobile`} />
       </div>
     )
@@ -30,11 +30,11 @@ const { shot, shotMobile, domain, title, eager, phoneSide = 'left' } = Astro.pro
 </div>
 
 <style>
+  /* entrata in prospettiva e parallasse del telefono: le trasformazioni le scrive scripts/scrub.ts */
   .stage {
     position: relative;
     transform-origin: 50% 100%;
-    /* --e (0→1) arriva dallo script: entrata in prospettiva */
-    transform: perspective(1600px) rotateX(calc((1 - var(--e, 1)) * 10deg)) scale(calc(0.94 + var(--e, 1) * 0.06));
+    will-change: transform;
   }
   .has-phone.phone-left .desk {
     margin-left: 9%;
@@ -47,19 +47,12 @@ const { shot, shotMobile, domain, title, eager, phoneSide = 'left' } = Astro.pro
     bottom: -9%;
     width: 21%;
     min-width: 110px;
-    /* il telefono si alza un po' più del computer: parallasse */
-    transform: translateY(calc((0.5 - var(--p, 0.5)) * 60px));
+    will-change: transform;
   }
   .phone-left .mobile {
     left: 0;
   }
   .phone-right .mobile {
     right: 0;
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .stage,
-    .mobile {
-      transform: none;
-    }
   }
 </style>

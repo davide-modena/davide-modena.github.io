@@ -268,6 +268,34 @@ const data = {
         print(`accent → <span class="k">${next}</span>`);
       },
     },
+    summon: {
+      help: L('chiama il mini-me', 'call the mini-me'),
+      run() {
+        dispatchEvent(new CustomEvent('mini', { detail: 'summon' }));
+        print(L('eccolo che arriva… 👋', 'here he comes… 👋'), 'ok');
+      },
+    },
+    sleep: {
+      help: L('manda a dormire il mini-me', 'put the mini-me to sleep'),
+      run() {
+        dispatchEvent(new CustomEvent('mini', { detail: 'sleep' }));
+        print('zZz…', 'dim');
+      },
+    },
+    mini: {
+      help: 'on | off | size s|m|l',
+      run([arg, size]) {
+        if (arg === 'on' || arg === 'off') {
+          dispatchEvent(new CustomEvent('mini', { detail: arg }));
+          return print(`mini-me → ${arg}`, 'dim');
+        }
+        if (arg === 'size' && ['s', 'm', 'l'].includes(size)) {
+          dispatchEvent(new CustomEvent('mini', { detail: `size ${size}` }));
+          return print(`mini-me size → ${size}`, 'dim');
+        }
+        print(L('uso: mini on | off | size s|m|l', 'usage: mini on | off | size s|m|l'), 'err');
+      },
+    },
     lang: {
       help: 'it | en',
       run([arg]) {
@@ -309,7 +337,7 @@ const data = {
     else {
       const all = Object.entries(D.dirs).flatMap(([d, x]) => [`${d}/`, ...x.items.map((i) => `${d}/${i.slug}`)]);
       const local = cwd === '~' ? [] : D.dirs[cwd.slice(2)].items.map((i) => i.slug);
-      pool = [...local, ...all, aboutFile, contactFile, 'linkedin', 'github', 'mail', 'light', 'dark', ...ACCENTS];
+      pool = [...local, ...all, aboutFile, contactFile, 'linkedin', 'github', 'mail', 'light', 'dark', 'on', 'off', 'size', ...ACCENTS];
     }
     const last = parts[parts.length - 1];
     const hits = pool.filter((p) => p.startsWith(last));
