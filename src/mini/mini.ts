@@ -10,6 +10,8 @@
 // Easter egg: se lo scuoti forte mentre lo tieni parte MINI FIGHTER (./game.ts, caricato solo allora).
 
 import { render, W, H, SIT_ROW, SEATED, type Theme } from './sprite';
+import { SCENES, SceneApi, choose, isHome, type Step } from './scenes';
+import type { Prop } from './props';
 
 type State =
   | 'hidden'
@@ -27,7 +29,8 @@ type State =
   | 'sleep'
   | 'dizzy'
   | 'bumpsit' // atterrato di sedere dopo i rimbalzi
-  | 'held';
+  | 'held'
+  | 'scene'; // una scenetta (./scenes.ts): scrivania, chitarra, treno…
 
 const SIZES = { s: 1, m: 2, l: 3 } as const;
 type Size = keyof typeof SIZES;
@@ -108,6 +111,19 @@ export class Mini {
   pageY = 0;
   platCheck = 0;
   written = { pos: '', tf: '', flip: '', origin: '' };
+
+  // --- scenette -------------------------------------------------------------------------------
+  scene: { name: string; gen: Generator<Step, void, void>; api: SceneApi } | null = null;
+  step: Step | null = null;
+  stepT = 0;
+  /** niente scene prima di questo istante: in home sono rare, nelle pagine dedicate più frequenti */
+  sceneCool = performance.now() + (isHome() ? 25000 : 6000);
+  /** scena chiesta dal terminale ("mini scene <nome>") */
+  pendingScene = '';
+  /** ritocchi dello sprite accesi dalle scene: helmet, soot, blush, sweat */
+  mods = '';
+  /** oggetti di scena in pagina */
+  props: Prop[] = [];
 
   // --- fisica da videogioco -------------------------------------------------------------------
   /** inclinazione (rad) e velocità angolare: oscilla come un pendolo mentre lo tieni */
@@ -221,6 +237,7 @@ export class Mini {
   update(dt: number) {
     this.t += dt;
     const floor = this.floor;
+    for (const p of this.props) p.update(dt);
 
     // sopra una piattaforma: è ancorato alla pagina; ogni tanto controlla che la card ci sia ancora
     if (this.on === 'platform' && this.platform && this.state !== 'held') {
@@ -369,6 +386,9 @@ export class Mini {
         this.pose = 'idle';
         this.idle();
         break;
+      case 'scene':
+        this.runScene(dt);
+        break;
     }
 
     this.squash = Math.max(0, this.squash - dt * 4);
@@ -385,6 +405,10 @@ export class Mini {
   /** da fermo decide cosa fare, senza fretta */
   idle() {
     if (this.game) return;
+    if (this.pendingScene && this.on === 'floor') {
+      this.maybeScene();
+      return;
+    }
     const now = performance.now();
     if (this.compact && this.leaveAt && now > this.leaveAt) {
       this.leaveAt = 0;
@@ -393,6 +417,7 @@ export class Mini {
     if (!this.duration) this.duration = rand(4, 9);
     if (this.t < this.duration) return;
     if (now - this.active > 25000) return this.set('sleep');
+    if (this.on === 'floor' && this.maybeScene()) return;
     const visibleFor = (now - this.shownAt) / 1000;
     const r = Math.random();
     if (visibleFor > 90 && r < 0.12) return this.leave();
@@ -403,6 +428,74 @@ export class Mini {
     if (r < 0.8) return this.walkTo(clamp(this.x + rand(-350, 350), this.half + 20, innerWidth - this.half - 20));
     if (this.on === 'floor') return this.set('sit', rand(6, 10));
     this.set('idle', rand(2, 4));
+  }
+
+  // --- scenette ------------------------------------------------------------------------------
+
+  /** forse parte una scena (quella chiesta, o una a caso tra quelle della pagina) */
+  maybeScene() {
+    const now = performance.now();
+    let name = this.pendingScene;
+    if (!name) {
+      if (now < this.sceneCool) return false;
+      if (Math.random() > (isHome() ? 0.2 : 0.6)) {
+        this.sceneCool = now + 4000;
+        return false;
+      }
+      name = choose() ?? '';
+    }
+    this.pendingScene = '';
+    if (!SCENES[name]) return false;
+    const api = new SceneApi(this);
+    this.scene = { name, api, gen: SCENES[name].run(api) };
+    this.step = null;
+    this.set('scene');
+    return true;
+  }
+
+  runScene(dt: number) {
+    if (!this.scene) return this.set('idle');
+    if (!this.step) return this.nextStep();
+    const st = this.step;
+    this.stepT += dt;
+    if (st.kind === 'walk') {
+      const d = st.x - this.x;
+      this.pose = 'run';
+      if (Math.abs(d) < 1) {
+        this.x = st.x;
+        return this.nextStep();
+      }
+      this.facing = Math.sign(d);
+      this.x += Math.sign(d) * Math.min(Math.abs(d), RUN_SPEED * (st.speed ?? 1) * dt);
+      return;
+    }
+    if (this.pose !== st.pose) {
+      this.pose = st.pose;
+      this.frame = 0;
+      this.frameT = 0;
+    }
+    if (st.facing) this.facing = st.facing;
+    st.each?.(this.stepT);
+    if (this.stepT >= st.t || st.until?.()) this.nextStep();
+  }
+
+  nextStep() {
+    const r = this.scene!.gen.next();
+    if (r.done) return this.endScene();
+    this.step = r.value;
+    this.stepT = 0;
+  }
+
+  /** chiude la scena: gli oggetti spariscono; `abort` se è stata interrotta (presa, gioco…) */
+  endScene(abort = false) {
+    if (!this.scene) return;
+    const s = this.scene;
+    this.scene = null;
+    this.step = null;
+    s.gen.return();
+    s.api.cleanup();
+    this.sceneCool = performance.now() + (isHome() ? rand(45, 75) : rand(12, 22)) * 1000;
+    if (!abort) this.set('idle', rand(2, 4));
   }
 
   // --- azioni ---------------------------------------------------------------------------------
@@ -429,6 +522,7 @@ export class Mini {
   }
 
   leave() {
+    this.endScene(true);
     if (this.on !== 'floor') return this.hopDown();
     this.targetX = this.x < innerWidth / 2 ? -this.half * 2 : innerWidth + this.half * 2;
     this.set('leave');
@@ -534,7 +628,7 @@ export class Mini {
     this.scrollT = now;
     this.scrollStop = now;
     this.active = now;
-    if (this.game) return;
+    if (this.game || this.state === 'scene') return; // durante una scena è impegnato
     if (this.state === 'sleep') return this.wake();
     if (this.on !== 'floor' || !['idle', 'walk', 'scrollrun'].includes(this.state)) return;
     if (Math.abs(v) < 700) return;
@@ -583,6 +677,7 @@ export class Mini {
 
   startFight() {
     if (this.game || this.starting) return;
+    this.endScene(true);
     this.starting = true;
     store.set('mini', 'on');
     if (this.state === 'hidden') this.show();
@@ -645,6 +740,7 @@ export class Mini {
     if (e.pointerType === 'mouse' ? !this.hit(e.clientX, e.clientY) : !this.hitBox(e.clientX, e.clientY)) return;
     e.preventDefault();
     e.stopPropagation();
+    this.endScene(true);
     this.drag = { dx: this.x - e.clientX, dy: this.y - e.clientY, samples: [[e.clientX, e.clientY, performance.now()]] };
     // lo tieni per il punto che hai preso (lo sprite in piedi è più alto di quello seduto)
     const standTop = this.y - H * this.scale;
@@ -729,6 +825,20 @@ export class Mini {
       return;
     }
     if (name === 'fight') return this.startFight();
+    if (name === 'scenes') {
+      if (ev) (ev as Event & { result?: unknown }).result = Object.keys(SCENES);
+      return;
+    }
+    if (name === 'scene') {
+      // la scena parte appena è a terra e libero
+      this.endScene(true);
+      store.set('mini', 'on');
+      this.pendingScene = arg && SCENES[arg] ? arg : choose(Object.keys(SCENES)) ?? '';
+      if (this.state === 'hidden') return this.show();
+      if (this.on !== 'floor') return this.hopDown();
+      return this.set('idle');
+    }
+    this.endScene(true);
     if (name === 'summon') {
       store.set('mini', 'on');
       if (this.state === 'hidden') return this.show();
@@ -756,7 +866,12 @@ export class Mini {
   draw(force = false) {
     if (this.state === 'hidden') return;
     // animazione: ogni posa ha il suo ritmo
-    const speeds: Record<string, number> = { run: 0.075, idle: 0.6, wave: 0.22, sit: 1.4, sleep: 1, dizzy: 0.16, held: 0.12 };
+    const speeds: Record<string, number> = {
+      run: 0.075, idle: 0.6, wave: 0.22, sit: 1.4, sleep: 1, dizzy: 0.16, held: 0.12,
+      type: 0.12, think: 1.2, solder: 0.25, zap: 0.08, guitar: 0.22, piano: 0.18, violin: 0.35,
+      read: 0.28, teachWrite: 0.2, teachPoint: 0.4, phoneScroll: 0.5, phoneCall: 0.3,
+      eat: 0.5, drink: 0.7, blueprint: 1.2, curl: 0.5, flex: 0.4, bumpSad: 0.8,
+    };
     this.frameT += 1 / 60;
     if (this.frameT > (speeds[this.pose] ?? 0.2)) {
       this.frameT = 0;
@@ -766,11 +881,12 @@ export class Mini {
     let pose = this.pose;
     if (this.blinking > 0 && (pose === 'idle' || pose === 'point')) pose = 'blink';
     const theme: Theme = document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
-    const key = `${theme}:${pose}:${this.frame % 6}`;
+    const key = `${theme}:${pose}:${this.frame % 6}:${this.mods}`;
+    for (const p of this.props) p.draw(theme, this.statusH);
     if (force || key !== this.drawn) {
       let img = this.cache.get(key);
       if (!img) {
-        img = new ImageData(render(pose, this.frame % 6, theme) as unknown as Uint8ClampedArray<ArrayBuffer>, W, H);
+        img = new ImageData(render(pose, this.frame % 6, theme, this.mods) as unknown as Uint8ClampedArray<ArrayBuffer>, W, H);
         this.cache.set(key, img);
       }
       this.ctx.putImageData(img, 0, 0);
@@ -818,17 +934,27 @@ export class Mini {
     document.documentElement.classList.toggle('mini-hover', !this.drag && this.state !== 'hidden' && this.hit(e.clientX, e.clientY));
   }
 
-  /** scritte che volano via dalla testa: zZ, stelline, punto esclamativo */
-  particle(text: string, kind: string, n = 1) {
+  /**
+   * Scritte e simboli che escono dal mini-me: zZ, stelline, note, fumetti, bolle con le icone…
+   * `dx`/`dy` spostano il punto di partenza (pixel dello sprite, verso lo sguardo).
+   */
+  particle(text: string, kind: string, n = 1, opts: { img?: string; dx?: number; dy?: number } = {}) {
+    const seated = SEATED.has(this.pose);
     for (let i = 0; i < n; i++) {
       const p = document.createElement('span');
       p.className = `mini-p ${kind}`;
-      p.textContent = text;
+      if (opts.img) {
+        const im = document.createElement('img');
+        im.src = opts.img;
+        im.alt = '';
+        p.append(im);
+      } else p.textContent = text;
       p.style.setProperty('--i', String(i));
-      p.style.left = `${(W / 2 + this.facing * 5) * this.scale}px`;
-      p.style.top = `${(SEATED.has(this.pose) ? 10 : 4) * this.scale}px`;
+      const dx = opts.dx ?? 5;
+      p.style.left = `${(W / 2 + this.facing * dx) * this.scale}px`;
+      p.style.top = `${(opts.dy ?? (seated ? 10 : 4)) * this.scale}px`;
       this.root.append(p);
-      setTimeout(() => p.remove(), 2200);
+      setTimeout(() => p.remove(), kind === 'say' ? 2600 : 2200);
     }
   }
 }
