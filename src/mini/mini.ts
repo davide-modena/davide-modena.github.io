@@ -10,7 +10,7 @@
 // Easter egg: se lo scuoti forte mentre lo tieni parte MINI FIGHTER (./game.ts, caricato solo allora).
 
 import { render, W, H, SIT_ROW, SEATED, type Theme } from './sprite';
-import { SCENES, SceneApi, choose, isHome, type Step } from './scenes';
+import { SCENES, SceneApi, choose, isHome, pool, type Step } from './scenes';
 import type { Prop } from './props';
 
 type State =
@@ -117,7 +117,9 @@ export class Mini {
   step: Step | null = null;
   stepT = 0;
   /** niente scene prima di questo istante: in home sono rare, nelle pagine dedicate più frequenti */
-  sceneCool = performance.now() + (isHome() ? 25000 : 6000);
+  sceneCool = performance.now() + (isHome() ? 45000 : 2500);
+  /** pagina con scene dedicate (lavori, lab, chi sono, contatti…): lì le scene sono il suo lavoro */
+  dedicated = !isHome() && pool().length > 0;
   /** scena chiesta dal terminale ("mini scene <nome>") */
   pendingScene = '';
   /** ritocchi dello sprite accesi dalle scene: helmet, soot, blush, sweat */
@@ -414,14 +416,17 @@ export class Mini {
       this.leaveAt = 0;
       return this.leave();
     }
-    if (!this.duration) this.duration = rand(4, 9);
+    // nelle pagine dedicate si ferma poco: la prossima scena arriva presto
+    if (!this.duration) this.duration = this.dedicated ? rand(1, 2.5) : rand(4, 9);
     if (this.t < this.duration) return;
     if (now - this.active > 25000) return this.set('sleep');
     if (this.on === 'floor' && this.maybeScene()) return;
+    // sopra una card, in una pagina dedicata: scende per la prossima scena
+    if (this.dedicated && this.on === 'platform' && now > this.sceneCool) return this.hopDown();
     const visibleFor = (now - this.shownAt) / 1000;
     const r = Math.random();
     if (visibleFor > 90 && r < 0.12) return this.leave();
-    if (r < 0.55) {
+    if (r < 0.55 && !this.dedicated) {
       const plats = this.platforms();
       if (plats.length) return this.jumpTo(plats[(Math.random() * plats.length) | 0]);
     }
@@ -438,8 +443,9 @@ export class Mini {
     let name = this.pendingScene;
     if (!name) {
       if (now < this.sceneCool) return false;
-      if (Math.random() > (isHome() ? 0.2 : 0.6)) {
-        this.sceneCool = now + 4000;
+      // home: di rado; pagine dedicate: quasi sempre
+      if (Math.random() > (this.dedicated ? 0.9 : 0.1)) {
+        this.sceneCool = now + (this.dedicated ? 1000 : 8000);
         return false;
       }
       name = choose() ?? '';
@@ -494,7 +500,7 @@ export class Mini {
     this.step = null;
     s.gen.return();
     s.api.cleanup();
-    this.sceneCool = performance.now() + (isHome() ? rand(45, 75) : rand(12, 22)) * 1000;
+    this.sceneCool = performance.now() + (this.dedicated ? rand(3, 7) : rand(90, 150)) * 1000;
     if (!abort) this.set('idle', rand(2, 4));
   }
 
@@ -630,6 +636,8 @@ export class Mini {
     this.active = now;
     if (this.game || this.state === 'scene') return; // durante una scena è impegnato
     if (this.state === 'sleep') return this.wake();
+    // nelle pagine dedicate lo scroll non lo distrae: continua con le sue scene
+    if (this.dedicated) return;
     if (this.on !== 'floor' || !['idle', 'walk', 'scrollrun'].includes(this.state)) return;
     if (Math.abs(v) < 700) return;
     if (this.state === 'scrollrun') return; // già in corsa: mantiene la sua direzione
