@@ -100,6 +100,8 @@ class Fight implements FightHooks {
   last = performance.now();
   lang = document.documentElement.lang === 'en' ? 'en' : 'it';
   prevOverflow = '';
+  prevBody = ['', '', '', ''];
+  scrollTop = 0;
 
   constructor(mini: Mini) {
     this.mini = mini;
@@ -117,6 +119,10 @@ class Fight implements FightHooks {
     document.body.append(this.root);
 
     this.closeBtn.addEventListener('click', () => this.end());
+    // rotella e trascinamenti sull'overlay non devono muovere la pagina sotto
+    const stop = (e: Event) => e.preventDefault();
+    this.root.addEventListener('wheel', stop, { passive: false });
+    this.root.addEventListener('touchmove', stop, { passive: false });
     // niente selezione del testo della pagina trascinando sull'overlay
     this.root.addEventListener('pointerdown', (e) => {
       if (e.target === this.root || e.target === this.canvas) e.preventDefault();
@@ -135,8 +141,19 @@ class Fight implements FightHooks {
   // --- ciclo ----------------------------------------------------------------------------------
 
   start() {
+    // la pagina resta ferma: body bloccato al punto in cui eri (su telefono overflow:hidden da solo non basta)
+    this.scrollTop = scrollY;
+    const b = document.body.style;
+    this.prevBody = [b.position, b.top, b.left, b.right];
+    b.position = 'fixed';
+    b.top = `-${this.scrollTop}px`;
+    b.left = '0';
+    b.right = '0';
     this.prevOverflow = document.documentElement.style.overflow;
     document.documentElement.style.overflow = 'hidden';
+    // la pagina non fa più da piattaforma: se era seduto su una card, cade
+    if (this.mini.on === 'platform') this.mini.fall();
+    this.mini.target = null;
     document.documentElement.classList.add('fighting');
     getSelection()?.removeAllRanges();
     this.mini.root.classList.add('fighting');
@@ -160,6 +177,9 @@ class Fight implements FightHooks {
     removeEventListener('keydown', this.onKey);
     document.documentElement.style.overflow = this.prevOverflow;
     document.documentElement.classList.remove('fighting');
+    const b = document.body.style;
+    [b.position, b.top, b.left, b.right] = this.prevBody;
+    scrollTo(0, this.scrollTop);
     this.root.classList.add('out');
     setTimeout(() => this.root.remove(), 300);
     this.mini.endFight();

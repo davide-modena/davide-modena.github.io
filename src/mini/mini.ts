@@ -101,6 +101,7 @@ export class Mini {
   /** misure della pagina, prese solo al resize (leggerle a ogni fotogramma rallentava lo scroll) */
   floor = 0;
   headerH = 64;
+  statusH = 28;
   /** bordo alto dello sprite sullo schermo, e ultimi stili scritti (si riscrivono solo se cambiano) */
   vTop = 0;
   /** sopra una card: posizione in coordinate della pagina, e timer del controllo della card */
@@ -161,6 +162,8 @@ export class Mini {
       this.measure();
       this.x = clamp(this.x, this.half, innerWidth - this.half);
     });
+    // su telefono la barra degli indirizzi che compare/sparisce cambia l'altezza utile
+    visualViewport?.addEventListener('resize', () => this.measure());
     addEventListener('pointermove', (e) => this.onPointerMove(e), { passive: true });
     document.addEventListener('pointerover', (e) => this.onPointerOver(e));
     document.addEventListener('pointerdown', (e) => this.onGrab(e), true);
@@ -178,11 +181,14 @@ export class Mini {
     return (W * this.scale) / 2;
   }
   measure() {
-    this.floor = innerHeight - (document.querySelector<HTMLElement>('.statusbar')?.offsetHeight ?? 28);
+    const bar = document.querySelector<HTMLElement>('.statusbar');
+    this.statusH = bar?.offsetHeight ?? 28;
+    this.floor = bar ? bar.getBoundingClientRect().top : innerHeight - this.statusH;
     this.headerH = document.querySelector<HTMLElement>('.site-header')?.offsetHeight ?? 64;
   }
   /** piattaforme visibili e raggiungibili */
   platforms() {
+    if (this.game) return [];
     const top = this.headerH + 30;
     const bottom = this.floor - 90;
     return [...document.querySelectorAll(PLATFORMS)].filter((el) => {
@@ -321,7 +327,6 @@ export class Mini {
         this.pose = 'wave';
         if (this.t > this.duration) {
           // su telefono resta un po' sulla barra, così lo si può prendere col dito
-          if (this.compact && !this.game) this.leaveAt = performance.now() + 20000;
           this.set('idle');
         }
         break;
@@ -417,7 +422,6 @@ export class Mini {
   hide() {
     this.set('hidden');
     this.root.hidden = true;
-    if (this.compact) return;
     // si prende una pausa e poi torna
     setTimeout(() => {
       if (this.state === 'hidden' && this.enabled) this.show();
@@ -523,6 +527,7 @@ export class Mini {
   // --- interazione ----------------------------------------------------------------------------
 
   onScroll() {
+    if (this.compact) this.measure();
     const now = performance.now();
     const v = ((scrollY - this.scrollY) / Math.max(now - this.scrollT, 1)) * 1000;
     this.scrollY = scrollY;
@@ -590,7 +595,11 @@ export class Mini {
   endFight() {
     this.game = null;
     this.root.classList.remove('fighting');
-    this.leaveAt = this.compact ? performance.now() + 8000 : 0;
+    // la pagina è appena tornata alla sua posizione: non è uno scroll dell'utente
+    this.scrollY = scrollY;
+    this.scrollT = performance.now();
+    this.measure();
+    this.leaveAt = 0;
     if (this.state === 'held' || this.state === 'air') return;
     this.on = 'floor';
     this.set('wave', 1.6);
@@ -770,10 +779,19 @@ export class Mini {
     const seated = SEATED.has(this.pose);
     const left = this.x - this.half;
     this.vTop = this.y - (seated ? SIT_ROW : H) * this.scale;
-    // sopra una card: coordinate della pagina, così scorre insieme alla card senza ritardi
+    // tre modi di stare in pagina:
+    // - sopra una card: coordinate della pagina, così scorre insieme alla card senza ritardi
+    // - sul pavimento: ancorato al fondo dello schermo via CSS, come la barra di stato
+    //   (su telefono la barra degli indirizzi cambia l'altezza e così restano sempre insieme)
+    // - in volo o in mano: coordinate dello schermo
+    const grounded = this.on === 'floor' && this.state !== 'held' && this.state !== 'air';
     const onPage = this.on === 'platform' && this.state !== 'held';
-    const pos = onPage ? 'absolute' : 'fixed';
-    const top = onPage ? this.pageY - (seated ? SIT_ROW : H) * this.scale : this.vTop;
+    const pos = onPage ? 'page' : grounded ? 'floor' : 'screen';
+    const top = onPage
+      ? this.pageY - (seated ? SIT_ROW : H) * this.scale
+      : grounded
+        ? this.vTop + H * this.scale - this.floor
+        : this.vTop;
     const rot = Math.abs(this.theta) > 0.002 ? ` rotate(${this.theta.toFixed(3)}rad)` : '';
     const tf = `translate3d(${left.toFixed(1)}px, ${top.toFixed(1)}px, 0)${rot}`;
     // schiacciato all'impatto, allungato un filo mentre sale veloce
@@ -781,7 +799,14 @@ export class Mini {
     const stretch = this.state === 'air' && this.vy < -600 ? 0.08 : 0;
     const flip = `scale(${((this.facing < 0 ? -1 : 1) * (1 + sq - stretch)).toFixed(3)}, ${(1 - sq + stretch).toFixed(3)})`;
     const origin = `${this.pivotX.toFixed(0)}px ${this.pivotY.toFixed(0)}px`;
-    if (pos !== this.written.pos) this.root.style.position = this.written.pos = pos;
+    if (pos !== this.written.pos) {
+      this.written.pos = pos;
+      const st = this.root.style;
+      st.position = pos === 'page' ? 'absolute' : 'fixed';
+      st.top = pos === 'floor' ? 'auto' : '0';
+      st.bottom = pos === 'floor' ? `${this.statusH}px` : 'auto';
+      this.written.tf = ''; // cambia il riferimento delle coordinate: riscrive la trasformazione
+    }
     if (origin !== this.written.origin) this.root.style.transformOrigin = this.written.origin = origin;
     if (tf !== this.written.tf) this.root.style.transform = this.written.tf = tf;
     if (flip !== this.written.flip) this.canvas.style.transform = this.written.flip = flip;
