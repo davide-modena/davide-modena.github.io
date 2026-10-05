@@ -329,6 +329,7 @@ const POOLS: [RegExp, string[]][] = [
   [/^\/lab\/esp32/, ['circuit', 'coding']],
   [/^\/(lavori|work)(\/|$)/, ['coding']],
   [/^\/lab(\/|$)/, ['coding', 'circuit', 'claude']],
+  [/^\/blog(\/|$)/, ['coding', 'study']],
   [/^\/(chi-sono|about)\/?$/, ['guitar', 'piano', 'violin', 'study', 'teach']],
   [/^\/(contatti|contact)\/?$/, ['phone', 'call', 'pigeon']],
 ];

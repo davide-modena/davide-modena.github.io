@@ -2,6 +2,7 @@
 import { useTranslations, path } from '../i18n/utils';
 import { getLocalized } from '../lib/content';
 import { contact } from '../data/profile';
+import { getBlog } from '../lib/blog';
 import type { Lang } from '../i18n/ui';
 
 interface Props {
@@ -12,6 +13,7 @@ const { lang, alternate } = Astro.props;
 const t = useTranslations(lang);
 const works = await getLocalized('works', lang);
 const lab = await getLocalized('lab', lang);
+const posts = await getBlog();
 
 type Item = { group: string; label: string; hint?: string; href?: string; action?: string; keys?: string };
 const items: Item[] = [
@@ -19,9 +21,11 @@ const items: Item[] = [
   { group: t('palette.group.nav'), label: t('nav.work'), href: path('work', lang), keys: 'g w' },
   { group: t('palette.group.nav'), label: t('nav.lab'), href: path('lab', lang), keys: 'g l' },
   { group: t('palette.group.nav'), label: t('nav.about'), href: path('about', lang), keys: 'g a' },
+  { group: t('palette.group.nav'), label: t('nav.blog'), href: path('blog', lang), keys: 'g b' },
   { group: t('palette.group.nav'), label: t('nav.contact'), href: path('contact', lang), keys: 'g c' },
   ...works.map((w) => ({ group: t('palette.group.work'), label: w.data.title, hint: w.data.domain, href: path('work', lang, w.slug) })),
   ...lab.map((p) => ({ group: t('palette.group.lab'), label: p.data.title, hint: p.data.kind, href: path('lab', lang, p.slug) })),
+  ...posts.map((b) => ({ group: t('palette.group.blog'), label: b.data.title, hint: b.data.lang, href: path('blog', b.data.lang, b.id) })),
   { group: t('palette.group.actions'), label: t('palette.copyEmail'), hint: contact.email, action: 'copy-email' },
   { group: t('palette.group.actions'), label: t('palette.writeEmail'), href: `mailto:${contact.email}` },
   { group: t('palette.group.actions'), label: t('palette.linkedin'), href: contact.linkedin },

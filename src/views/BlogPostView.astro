@@ -1,0 +1,91 @@
+---
+import Base from '../layouts/Base.astro';
+import { render } from 'astro:content';
+import { getBlog, formatDate, readingMinutes } from '../lib/blog';
+import { useTranslations, path, otherLang } from '../i18n/utils';
+import type { Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+  slug: string;
+}
+const { lang, slug } = Astro.props;
+const t = useTranslations(lang);
+const posts = await getBlog();
+const post = posts.find((p) => p.slug === slug)!;
+const { Content } = await render(post);
+const d = post.data;
+const iso = (x: Date) => x.toISOString().slice(0, 10);
+---
+
+<Base lang={lang} alternate={path('blog', otherLang(lang))} title={d.title} description={d.description} path={`~/${t('section.blog')}/${slug}`}>
+  <article class="post" data-section={`~/${t('section.blog')}/${slug}`}>
+    <div class="frame">
+      <nav class="crumbs mono" data-reveal>
+        <a href={path('blog', lang)} class="back">← {t('blog.back')}</a>
+      </nav>
+
+      <header class="head">
+        <p class="meta mono" data-reveal>
+          <span>{t('blog.published')} <time datetime={iso(d.date)}>{formatDate(d.date, lang)}</time></span>
+          {d.updated && <span>{t('blog.updated')} <time datetime={iso(d.updated)}>{formatDate(d.updated, lang)}</time></span>}
+          <span>{readingMinutes(post.body)} {t('blog.min')}</span>
+          {d.draft && <span class="draft">{t('blog.draft')}</span>}
+        </p>
+        <h1 data-reveal style="--d:.05s">{d.title}</h1>
+        <p class="lead" data-reveal style="--d:.1s">{d.description}</p>
+        {d.tags.length > 0 && <p class="tags mono" data-reveal style="--d:.14s">{d.tags.map((x) => <span>#{x}</span>)}</p>}
+      </header>
+
+      <div class="prose" data-reveal style="--d:.18s">
+        <Content />
+      </div>
+    </div>
+  </article>
+</Base>
+
+<style>
+  .post {
+    padding: clamp(32px, 5vw, 64px) 0 clamp(72px, 10vw, 140px);
+  }
+  .crumbs {
+    font-size: 12.5px;
+    color: var(--fg-2);
+  }
+  .back:hover {
+    color: var(--accent);
+  }
+  .head {
+    margin: clamp(32px, 5vw, 64px) 0 clamp(40px, 5vw, 64px);
+    max-width: 68ch;
+  }
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 18px;
+    font-size: 12.5px;
+    color: var(--fg-3);
+  }
+  .draft {
+    color: var(--accent);
+  }
+  h1 {
+    margin-top: 20px;
+    font-size: clamp(38px, 6vw, 76px);
+    letter-spacing: -0.045em;
+    line-height: 1;
+  }
+  .lead {
+    margin-top: 22px;
+    font-size: clamp(18px, 1.8vw, 23px);
+    line-height: 1.4;
+    color: var(--fg-2);
+  }
+  .tags {
+    display: flex;
+    gap: 14px;
+    margin-top: 20px;
+    font-size: 12.5px;
+    color: var(--fg-3);
+  }
+</style>

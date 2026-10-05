@@ -18,7 +18,8 @@ const GOTO: Record<string, () => string | null | undefined> = {
   w: () => navHref(0),
   l: () => navHref(1),
   a: () => navHref(2),
-  c: () => navHref(3),
+  b: () => navHref(3),
+  c: () => navHref(4),
 };
 
 let pendingG = 0;

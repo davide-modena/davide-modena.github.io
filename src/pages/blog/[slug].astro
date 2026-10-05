@@ -1,0 +1,11 @@
+---
+import View from '../../views/BlogPostView.astro';
+import { getBlog } from '../../lib/blog';
+
+export async function getStaticPaths() {
+  const posts = await getBlog();
+  return posts.filter((p) => p.data.lang === 'it').map((p) => ({ params: { slug: p.slug } }));
+}
+---
+
+<View lang="it" slug={Astro.params.slug} />

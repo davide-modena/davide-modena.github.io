@@ -14,6 +14,7 @@ const links = [
   { href: path('work', lang), label: t('nav.work') },
   { href: path('lab', lang), label: t('nav.lab') },
   { href: path('about', lang), label: t('nav.about') },
+  { href: path('blog', lang), label: t('nav.blog') },
   { href: path('contact', lang), label: t('nav.contact') },
 ];
 ---
@@ -70,10 +71,44 @@ const links = [
         </svg>
       </button>
 
-      <button class="menu mono" data-open-palette>{t('nav.menu')}</button>
+      <button class="menu mono" data-menu-toggle aria-expanded="false" aria-controls="mobile-menu" aria-label={t('nav.menu')}>
+        <span class="bars" aria-hidden="true"></span>
+      </button>
     </div>
   </div>
+
+  <div id="mobile-menu" class="mobile-menu" role="navigation" aria-label="menu" hidden>
+    <ul class="frame">
+      {
+        links.map((l, i) => (
+          <li>
+            <a href={l.href} class="mono" aria-current={current.startsWith(l.href) ? 'page' : undefined}>
+              <span class="n">0{i + 1}</span>
+              {l.label}
+              <span class="arrow" aria-hidden="true">→</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
 </header>
+
+<script>
+  const btn = document.querySelector<HTMLButtonElement>('[data-menu-toggle]')!;
+  const menu = document.getElementById('mobile-menu')!;
+  function set(open: boolean) {
+    menu.hidden = !open;
+    btn.setAttribute('aria-expanded', String(open));
+  }
+  btn.addEventListener('click', () => set(menu.hidden === true));
+  menu.addEventListener('click', (e) => (e.target as HTMLElement).closest('a') && set(false));
+  addEventListener('keydown', (e) => e.key === 'Escape' && !menu.hidden && set(false));
+  addEventListener('resize', () => innerWidth > 900 && set(false));
+  document.addEventListener('click', (e) => {
+    if (!menu.hidden && !(e.target as HTMLElement).closest('.site-header')) set(false);
+  });
+</script>
 
 <style>
   .site-header {
@@ -212,11 +247,78 @@ const links = [
   }
   .menu {
     display: none;
+    width: 34px;
     height: 34px;
-    padding: 0 12px;
+    place-items: center;
     border: 1px solid var(--line-2);
     border-radius: 8px;
-    font-size: 12.5px;
+  }
+  /* hamburger che diventa una X */
+  .bars,
+  .bars::before {
+    display: block;
+    width: 14px;
+    height: 1.5px;
+    background: currentColor;
+    transition: transform 0.25s var(--ease);
+  }
+  .bars {
+    position: relative;
+    top: -3px;
+  }
+  .bars::before {
+    content: '';
+    position: absolute;
+    top: 6px;
+  }
+  .menu[aria-expanded='true'] .bars {
+    transform: translateY(3px) rotate(45deg);
+  }
+  .menu[aria-expanded='true'] .bars::before {
+    transform: translateY(-6px) rotate(-90deg);
+  }
+
+  .mobile-menu {
+    position: absolute;
+    top: var(--header-h);
+    left: 0;
+    right: 0;
+    background: var(--bg);
+    border-bottom: 1px solid var(--line);
+    box-shadow: 0 24px 40px -24px rgb(0 0 0 / 0.5);
+  }
+  .mobile-menu[hidden] {
+    display: none;
+  }
+  .mobile-menu ul {
+    list-style: none;
+    margin: 0 auto;
+    padding-block: 8px 16px;
+  }
+  .mobile-menu li + li {
+    border-top: 1px solid var(--line);
+  }
+  .mobile-menu a {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    padding: 18px 0;
+    font-size: 20px;
+    color: var(--fg-2);
+  }
+  .mobile-menu a .n {
+    font-size: 11px;
+    color: var(--fg-3);
+  }
+  .mobile-menu a .arrow {
+    margin-left: auto;
+    color: var(--fg-3);
+  }
+  .mobile-menu a[aria-current='page'] {
+    color: var(--fg);
+  }
+  .mobile-menu a[aria-current='page'] .n {
+    color: var(--accent);
   }
 
   @media (max-width: 900px) {
@@ -228,7 +330,7 @@ const links = [
       margin-left: auto;
     }
     .menu {
-      display: block;
+      display: grid;
     }
   }
 </style>

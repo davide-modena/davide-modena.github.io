@@ -44,4 +44,21 @@ const lab = defineCollection({
   }),
 });
 
-export const collections = { works, lab };
+// Gli articoli sono file singoli in src/content/blog/<slug>.md (i file che iniziano con _ vengono ignorati).
+const blog = defineCollection({
+  loader: glob({ pattern: '**/[^_]*.{md,mdx}', base: './src/content/blog' }),
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    /** data di pubblicazione (AAAA-MM-GG) */
+    date: z.coerce.date(),
+    /** da mettere se modifichi l'articolo in seguito */
+    updated: z.coerce.date().optional(),
+    tags: z.array(z.string()).default([]),
+    lang: z.enum(['it', 'en']).default('it'),
+    /** true = visibile solo con `npm run dev`, non online */
+    draft: z.boolean().default(false),
+  }),
+});
+
+export const collections = { works, lab, blog };

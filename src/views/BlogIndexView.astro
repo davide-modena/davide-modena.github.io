@@ -1,0 +1,132 @@
+---
+import Base from '../layouts/Base.astro';
+import { getBlog, formatDate, readingMinutes } from '../lib/blog';
+import { useTranslations, path, otherLang } from '../i18n/utils';
+import type { Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const posts = await getBlog();
+---
+
+<Base lang={lang} alternate={path('blog', otherLang(lang))} title={t('blog.title')} description={t('blog.lead')} path={`~/${t('section.blog')}`}>
+  <section class="page-head" data-section={`~/${t('section.blog')}`}>
+    <div class="frame">
+      <p class="label" data-reveal><span class="idx">04</span> / <b>{t('section.blog')}</b> [{String(posts.length).padStart(2, '0')}]</p>
+      <h1 data-reveal>{t('blog.title')}<span class="accent">.</span></h1>
+      <p class="lead muted" data-reveal style="--d:.1s">{t('blog.lead')}</p>
+    </div>
+  </section>
+  <section class="section list">
+    <span class="cross l"></span><span class="cross r"></span>
+    <div class="frame">
+      {
+        posts.length === 0 ? (
+          <p class="mono empty">{t('blog.empty')}</p>
+        ) : (
+          <ul class="posts">
+            {posts.map((p) => (
+              <li data-reveal>
+                <a href={path('blog', p.data.lang, p.slug)} class="post" data-nav-item>
+                  <time class="date mono" datetime={p.data.date.toISOString().slice(0, 10)}>
+                    {formatDate(p.data.date, lang)}
+                  </time>
+                  <div class="body">
+                    <h2>{p.data.title}</h2>
+                    <p>{p.data.description}</p>
+                    <p class="meta mono">
+                      <span>
+                        {readingMinutes(p.body)} {t('blog.min')}
+                      </span>
+                      {p.data.tags.map((tag) => <span>#{tag}</span>)}
+                      {p.data.lang !== lang && <span class="hl">{t('blog.langOnly')}</span>}
+                      {p.data.draft && <span class="hl">{t('blog.draft')}</span>}
+                    </p>
+                  </div>
+                  <span class="arrow mono" aria-hidden="true">→</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        )
+      }
+    </div>
+  </section>
+</Base>
+
+<style>
+  .empty {
+    color: var(--fg-3);
+    font-size: 14px;
+  }
+  .posts {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--line);
+  }
+  .post {
+    display: grid;
+    grid-template-columns: 190px minmax(0, 1fr) auto;
+    gap: 24px;
+    align-items: baseline;
+    padding: 28px 0;
+    border-bottom: 1px solid var(--line);
+    transition: padding 0.3s var(--ease);
+  }
+  .post:hover {
+    padding-left: 12px;
+  }
+  .date {
+    font-size: 12.5px;
+    color: var(--fg-3);
+  }
+  h2 {
+    font-size: clamp(22px, 2.6vw, 32px);
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+    font-weight: 500;
+  }
+  .post:hover h2 {
+    color: var(--accent);
+  }
+  .body p:not(.meta) {
+    margin-top: 8px;
+    max-width: 60ch;
+    color: var(--fg-2);
+  }
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    margin-top: 12px;
+    font-size: 12px;
+    color: var(--fg-3);
+  }
+  .meta .hl {
+    color: var(--accent);
+  }
+  .arrow {
+    color: var(--fg-3);
+    transition: transform 0.3s var(--ease);
+  }
+  .post:hover .arrow {
+    transform: translateX(4px);
+    color: var(--accent);
+  }
+  @media (max-width: 700px) {
+    .post {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 10px;
+    }
+    .arrow {
+      display: none;
+    }
+    .post:hover {
+      padding-left: 0;
+    }
+  }
+</style>
