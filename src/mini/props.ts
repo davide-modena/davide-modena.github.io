@@ -214,6 +214,34 @@ function plane(t: number) {
   return Math.floor(t * 6) % 2 ? ['pp......', 'pppp....', 'plpppp..', 'pp......'] : ['........', 'pp......', 'pppppp..', 'plp.....'];
 }
 
+/**
+ * La mascotte arancione di Claude Code: un granchietto squadrato con due occhi, le braccine
+ * ai lati e quattro zampette che camminano. `wave` = alza la chela per salutare.
+ */
+function clawd(t: number, wave = 0) {
+  const g = blank(22, 16);
+  rect(g, 4, 0, 14, 1, 'O');
+  rect(g, 3, 1, 16, 10, 'O');
+  // occhi (ogni tanto sbatte)
+  const blink = Math.floor(t * 2) % 9 === 0;
+  if (!blink) {
+    rect(g, 7, 3, 2, 3, 'K');
+    rect(g, 13, 3, 2, 3, 'K');
+  } else {
+    rect(g, 7, 4, 2, 1, 'K');
+    rect(g, 13, 4, 2, 1, 'K');
+  }
+  // braccine: quella davanti si alza per salutare
+  rect(g, 0, 5, 3, 3, 'O');
+  if (wave && Math.floor(t * 5) % 2) rect(g, 19, 1, 3, 4, 'O');
+  else if (wave) rect(g, 19, 2, 3, 3, 'O');
+  else rect(g, 19, 5, 3, 3, 'O');
+  // zampette che si alternano mentre cammina
+  const step = wave ? 0 : Math.floor(t * 8) % 2; // da fermo non muove le zampe
+  for (const [i, x] of [4, 8, 12, 16].entries()) rect(g, x, 11, 2, (i + step) % 2 ? 5 : 4, 'O');
+  return toRows(g);
+}
+
 /** la stellina di Claude, con due occhietti */
 function claude(t: number) {
   const blink = Math.floor(t * 2) % 7 === 0;
@@ -253,6 +281,7 @@ export const DEFS = {
   pigeon: (t: number, withLetter = 0) => pigeon(t, !!withLetter),
   plane: (t: number) => plane(t),
   claude: (t: number) => claude(t),
+  clawd: (t: number, wave = 0) => clawd(t, wave),
 };
 export type PropName = keyof typeof DEFS;
 

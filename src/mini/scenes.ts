@@ -36,7 +36,7 @@ export class SceneApi {
   spot(right: number, left = 8) {
     const min = this.m.half + left * this.s + 8;
     const max = innerWidth - right * this.s - 8;
-    return max < min ? innerWidth / 2 : Math.min(Math.max(this.m.x, min), max);
+    return max < min ? innerWidth / 2 : rand(min, max);
   }
 
   /** mette un oggetto a `dx` pixel dello sprite dal mini-me */
@@ -90,7 +90,7 @@ export const SCENES: Record<string, SceneDef> = {
       yield a.pose('type', rand(4, 6), { facing: 1 });
       for (let i = 0; i < 2; i++) {
         if (Math.random() < 0.5) yield a.pose('think', rand(1.5, 2.5), { facing: 1 });
-        else a.say(pick(['git push', 'LGTM', 'npm run dev', '// TODO', 'bug?!', '✓ build']));
+        else a.say(pick(['git push', 'npm run dev', '// TODO', 'bug?!', '✓ build']));
         yield a.pose('type', rand(3, 5), { facing: 1 });
       }
       a.say(L('✓ fatto!', '✓ done!'));
@@ -115,23 +115,27 @@ export const SCENES: Record<string, SceneDef> = {
     },
   },
 
-  // la stellina di Claude passa a salutare (rara)
+  // la mascotte di Claude Code (il granchietto arancione) passa a piedi a salutare (rara)
   claude: {
     weight: 0.3,
     *run(a) {
       const s = a.s;
-      const c = a.prop('claude', 0, { mode: 'air', y: -40, front: true });
-      c.x = innerWidth + 30;
-      const tx = Math.min(a.m.x + 26 * s, innerWidth - 20 * s);
-      c.moveTo(tx, a.m.floor - 58 * s, 420);
-      yield a.pose('surprised', 3, { facing: tx > a.m.x ? 1 : -1, until: () => c.arrived });
-      a.m.particle('✦', 'stars', 3);
-      yield a.pose('wave', 1.6);
-      a.say(pick(['pair programming?', 'LGTM ✓', L('ciao!', 'hi!')]));
-      yield a.pose('jump', 0.5);
-      yield a.pose('idle', 1.2);
-      c.moveTo(innerWidth + 60, -60, 480);
-      yield a.pose('wave', 1.4, { until: () => c.arrived });
+      const fromRight = a.m.x < innerWidth / 2;
+      const c = a.prop('clawd', 0, { front: true, flip: fromRight });
+      c.x = fromRight ? innerWidth + 14 * s : -14 * s;
+      c.vx = fromRight ? -150 : 150;
+      const dir = fromRight ? 1 : -1;
+      const stopAt = a.m.x + dir * 30 * s;
+      yield a.pose('surprised', 6, { facing: dir, until: () => (fromRight ? c.x <= stopAt : c.x >= stopAt) });
+      c.vx = 0;
+      c.arg = 1; // alza la chela
+      yield a.pose('wave', 1.8, { facing: dir });
+      a.say(pick(['pair programming?', L('ciao!', 'hi!')]));
+      yield a.pose('jump', 0.5, { facing: dir });
+      yield a.pose('idle', 1.2, { facing: dir });
+      c.arg = 0;
+      c.vx = fromRight ? 150 : -150;
+      yield a.pose('wave', 6, { facing: dir, until: () => c.x > innerWidth + 20 * s || c.x < -20 * s });
     },
   },
 
@@ -139,6 +143,7 @@ export const SCENES: Record<string, SceneDef> = {
   guitar: {
     weight: 1,
     *run(a) {
+      yield a.walk(a.spot(24));
       yield a.pose('guitar', rand(6, 9), { each: a.every(0.55, () => a.note()) });
     },
   },
@@ -153,12 +158,14 @@ export const SCENES: Record<string, SceneDef> = {
   violin: {
     weight: 1,
     *run(a) {
+      yield a.walk(a.spot(24));
       yield a.pose('violin', rand(6, 8), { each: a.every(0.7, () => a.note()) });
     },
   },
   study: {
     weight: 1,
     *run(a) {
+      yield a.walk(a.spot(14));
       yield a.pose('read', rand(7, 10));
       a.m.particle('💡', 'idea');
       yield a.pose('surprised', 1);
@@ -181,6 +188,7 @@ export const SCENES: Record<string, SceneDef> = {
   phone: {
     weight: 1,
     *run(a) {
+      yield a.walk(a.spot(14));
       const icons = Object.keys(ICONS) as (keyof typeof ICONS)[];
       yield a.pose('phoneScroll', rand(6, 8), {
         each: a.every(1.1, () => a.m.particle('', 'bubble', 1, { img: iconURL(pick(icons), 3), dx: 12, dy: 18 })),
@@ -190,6 +198,7 @@ export const SCENES: Record<string, SceneDef> = {
   call: {
     weight: 1,
     *run(a) {
+      yield a.walk(a.spot(14));
       a.say(L('pronto?', 'hello?'));
       yield a.pose('phoneCall', 2.5);
       a.say(pick([L('sì, un sito nuovo!', 'yes, a new website!'), L('certo, ci sentiamo!', 'sure, talk soon!')]));
@@ -199,7 +208,7 @@ export const SCENES: Record<string, SceneDef> = {
     },
   },
   plane: {
-    weight: 1,
+    weight: 0, // disattivato: da rifare
     *run(a) {
       const s = a.s;
       yield a.walk(a.spot(10, 30));
@@ -217,17 +226,20 @@ export const SCENES: Record<string, SceneDef> = {
     weight: 1,
     *run(a) {
       const s = a.s;
-      yield a.walk(a.spot(12, 12));
-      yield a.pose('letter', 1, { facing: 1 });
-      const hand = { x: a.m.x + 10 * s, y: a.m.floor - 44 * s };
-      const b = a.prop('pigeon', 0, { mode: 'air', y: -30, front: true });
+      yield a.walk(a.spot(14, 14));
+      yield a.pose('letter', 1.2, { facing: 1 });
+      // la lettera è in mano al mini-me: il becco deve arrivare lì (il piccione viene da destra e guarda a sinistra)
+      const tx = a.m.x + 8 * s + 4.5 * s;
+      const ty = a.m.floor - 40 * s;
+      const b = a.prop('pigeon', 0, { mode: 'air', y: -30, front: true, flip: true });
       b.x = innerWidth + 40;
-      b.moveTo(hand.x + 8 * s, hand.y - 4 * s, 300);
-      yield a.pose('holdUp', 4, { facing: 1, until: () => b.arrived });
+      b.moveTo(tx, ty, 300);
+      yield a.pose('holdUp', 15, { facing: 1, until: () => b.arrived });
+      yield a.pose('holdUp', 0.35, { facing: 1 });
       b.arg = 1; // prende la lettera
       a.say(L('grazie!', 'thanks!'));
-      b.moveTo(-60, -80, 340);
-      yield a.pose('wave', 2.2, { facing: 1, until: () => b.arrived });
+      b.moveTo(-80, -100, 340);
+      yield a.pose('wave', 15, { facing: 1, until: () => b.arrived });
     },
   },
 
@@ -235,6 +247,7 @@ export const SCENES: Record<string, SceneDef> = {
   grapes: {
     weight: 1,
     *run(a) {
+      yield a.walk(a.spot(14));
       yield a.pose('eat', rand(4, 5));
       yield a.pose('drink', 3);
       a.m.mods = 'blush';
@@ -247,6 +260,7 @@ export const SCENES: Record<string, SceneDef> = {
   architect: {
     weight: 1,
     *run(a) {
+      yield a.walk(a.spot(14));
       a.m.mods = 'helmet';
       a.m.particle('', 'puff', 3);
       yield a.pose('blueprint', 3.5);
@@ -274,6 +288,7 @@ export const SCENES: Record<string, SceneDef> = {
   gym: {
     weight: 1,
     *run(a) {
+      yield a.walk(a.spot(14));
       a.m.mods = 'sweat';
       // una ripetizione al secondo (la posa alterna giù/su ogni mezzo secondo), contate a voce
       let rep = 0;
@@ -295,8 +310,12 @@ function* chase(a: SceneApi, name: 'train' | 'bus', shout: string, speed: number
   yield a.walk(innerWidth - a.m.half - 12, 1.9);
   a.say(shout);
   yield a.pose('bumpSad', 2.6, { facing: 1 });
+  yield a.pose('bumpSad', 1.2, { facing: 1 });
+  // sconsolato, torna verso il centro
+  yield a.walk(innerWidth * 0.55, 0.8);
+  yield a.pose('idle', 0.8, { facing: -1 });
   if (name === 'train') a.say(L('…era in anticipo?!', '…it was EARLY?!'));
-  yield a.pose('bumpSad', 1.4, { facing: 1 });
+  yield a.pose('idle', 2.2, { facing: -1 });
 }
 
 // --- quale scena, su quale pagina --------------------------------------------------------------
@@ -311,7 +330,7 @@ const POOLS: [RegExp, string[]][] = [
   [/^\/(lavori|work)(\/|$)/, ['coding']],
   [/^\/lab(\/|$)/, ['coding', 'circuit', 'claude']],
   [/^\/(chi-sono|about)\/?$/, ['guitar', 'piano', 'violin', 'study', 'teach']],
-  [/^\/(contatti|contact)\/?$/, ['phone', 'call', 'plane', 'pigeon']],
+  [/^\/(contatti|contact)\/?$/, ['phone', 'call', 'pigeon']],
 ];
 
 export function pagePath() {
@@ -323,7 +342,7 @@ export const isHome = () => pagePath() === '/';
 export function pool(): string[] {
   const path = pagePath();
   for (const [re, names] of POOLS) if (re.test(path)) return names;
-  return isHome() ? Object.keys(SCENES) : [];
+  return isHome() ? Object.keys(SCENES).filter((k) => SCENES[k].weight > 0) : [];
 }
 
 export function choose(names = pool()): string | null {

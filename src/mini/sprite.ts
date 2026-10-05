@@ -173,28 +173,55 @@ const TORSO_Y = 22;
 // --- oggetti tenuti in mano: griglia + punto d'aggancio ---------------------------------------
 type ItemName = 'guitar' | 'violin' | 'book' | 'phone' | 'letter' | 'plane' | 'grapes' | 'glass' | 'dumbbell' | 'blueprint';
 const ITEMS: Record<ItemName, { grid: string[]; anchor: [number, number] }> = {
+  // chitarra acustica: cassa a "8" con la buca, manico lungo con le corde, paletta
   guitar: {
     grid: [
-      '...................RRn',
-      '................nnnn..',
-      '.............nnnn.....',
-      '..rrrrr...nnnn........',
-      '.rrRRRrrnnn...........',
-      'rrRrnrRrrn............',
-      'rrRnnnRrr.............',
-      'rrRrnrRrr.............',
-      '.rrRRRrr..............',
-      '..rrrrr...............',
+      '.....................nKK',
+      '..................nxnn..',
+      '...............nxnn.....',
+      '............nxnn........',
+      '..RRRR...nxnn...........',
+      '.RrrrrRnxnn.............',
+      'RrrrrrnxnR..............',
+      'RrrKKxxxrR..............',
+      'RrKKKKrrrrR.............',
+      'RrrKKrrrrrR.............',
+      'RrrrrrrrrrR.............',
+      'RrrrrrrrrrR.............',
+      '.RrrrrrrrR..............',
+      '..RRRRRRR...............',
     ],
-    anchor: [4, 6],
+    anchor: [4, 9],
   },
+  // violino: cassa a "8" con le effe, tastiera, riccio; sotto il mento
   violin: {
-    grid: ['.ttt........', 'tTtTtnnnnnnn', 'tTtTt.......', '.ttt........'],
+    grid: [
+      '..TTTT............',
+      '.TttttT...........',
+      'TttKttTnnnnnnnnnTT',
+      'TttttttnnnnnnnnnTT',
+      'TttKttT...........',
+      '.TttttT...........',
+      '..TTTT............',
+    ],
     anchor: [0, 0],
   },
-  book: { grid: ['.ppppcpppp.', 'pPpPpcpPpPp', 'pppppcppppp', 'pPpPpcpPppp', 'ccccccccccc'], anchor: [5, 4] },
+  // libro aperto, pagine con le righe verso chi guarda
+  book: {
+    grid: [
+      '.pppppp.pppppp.',
+      'cpPPPpppPPPPppc',
+      'cppppppcppppppc',
+      'cpPPppPcpPPPppc',
+      'cppppppcppppppc',
+      'cpPPPppcpPPppPc',
+      'ccccccccccccccc',
+    ],
+    anchor: [7, 6],
+  },
   phone: { grid: ['ddd', 'dLd', 'dLd', 'dLd', 'ddd'], anchor: [1, 2] },
-  letter: { grid: ['pppppp', 'pPppPp', 'ppPPpp', 'pppppp'], anchor: [2, 2] },
+  // busta: le due diagonali della patta e il sigillo rosso
+  letter: { grid: ['PpppppppP', 'pPpppppPp', 'ppPpppPpp', 'pppPcPppp', 'ppppppppp', 'ppppppppp'], anchor: [4, 3] },
   plane: { grid: ['pp....', 'pppp..', 'pPpppp', 'pp....'], anchor: [1, 2] },
   grapes: { grid: ['..l..', '.vVv.', 'vVvVv', '.vVv.', '..v..'], anchor: [2, 0] },
   glass: { grid: ['G.G', 'qqq', 'GqG', '.G.', '.G.', 'GGG'], anchor: [1, 3] },
@@ -318,9 +345,10 @@ export const POSES: Record<string, Pose[]> = {
     { face: 'blink', dy: 6, back: [[4, 4], [9, 4]], front: [[4, 1], [0, -3]], ...CHAIR_LEGS },
   ],
   // al banco di elettronica
+  // braccia in avanti all'altezza del banco (non più in basso)
   solder: [
-    { face: 'look', back: [[4, 4], [9, 8]], front: [[3, 4], [8, 7]], ...{ legB: LEG_STRAIGHT, legF: LEG_STRAIGHT } },
-    { face: 'look', back: [[4, 4], [10, 7]], front: [[3, 4], [7, 8]], ...{ legB: LEG_STRAIGHT, legF: LEG_STRAIGHT } },
+    { face: 'look', back: [[4, 2], [10, 4]], front: [[3, 2], [9, 3]], legB: LEG_STRAIGHT, legF: LEG_STRAIGHT },
+    { face: 'look', back: [[4, 2], [11, 3]], front: [[3, 2], [8, 4]], legB: LEG_STRAIGHT, legF: LEG_STRAIGHT },
   ],
   // la scossa: lampo bianco alternato
   zap: [
@@ -329,28 +357,30 @@ export const POSES: Record<string, Pose[]> = {
   ],
 
   // --- scene: chi sono -------------------------------------------------------------------------
+  // la mano dietro sul manico, quella davanti che pennella sulla buca
   guitar: [
-    { face: 'happy', back: [[7, 4], [15, 3]], front: [[1, 5], [-3, 8]], ...{ legB: LEG_STRAIGHT, legF: LEG_STRAIGHT }, item: { name: 'guitar', at: 'torso', layer: 'mid', off: [-2, 4] } },
-    { face: 'normal', back: [[7, 4], [15, 3]], front: [[1, 5], [-2, 10]], ...{ legB: LEG_STRAIGHT, legF: LEG_STRAIGHT }, item: { name: 'guitar', at: 'torso', layer: 'mid', off: [-2, 4] } },
+    { face: 'happy', back: [[7, 4], [15, 2]], front: [[0, 5], [-4, 8]], legB: LEG_STRAIGHT, legF: LEG_STRAIGHT, item: { name: 'guitar', at: 'torso', layer: 'mid', off: [-1, 5] } },
+    { face: 'normal', back: [[7, 4], [15, 2]], front: [[0, 5], [-3, 10]], legB: LEG_STRAIGHT, legF: LEG_STRAIGHT, item: { name: 'guitar', at: 'torso', layer: 'mid', off: [-1, 5] } },
   ],
   piano: [
     { face: 'happy', back: [[5, 4], [12, 6]], front: [[3, 4], [8, 6]], legB: LEG_STRAIGHT, legF: LEG_STRAIGHT },
     { face: 'blink', back: [[5, 4], [11, 7]], front: [[3, 4], [9, 5]], legB: LEG_STRAIGHT, legF: LEG_STRAIGHT },
   ],
+  // violino sotto il mento, mano dietro sul riccio, archetto che attraversa la cassa
   violin: [
     {
-      face: 'blink', back: [[8, -1], [19, -2]], front: [[2, 4], [3, 2]], legB: LEG_STRAIGHT, legF: LEG_STRAIGHT,
-      item: { name: 'violin', at: 'torso', layer: 'mid', off: [3, -8] }, stroke: { at: 'front', a: [-3, -5], b: [6, 3], c: 'n' },
+      face: 'blink', back: [[9, -2], [20, -3]], front: [[2, 4], [3, 2]], legB: LEG_STRAIGHT, legF: LEG_STRAIGHT,
+      item: { name: 'violin', at: 'torso', layer: 'mid', off: [2, -9] }, stroke: { at: 'front', a: [-6, -9], b: [6, 3], c: 'n' },
     },
     {
-      face: 'happy', back: [[8, -1], [19, -2]], front: [[4, 3], [7, 0]], legB: LEG_STRAIGHT, legF: LEG_STRAIGHT,
-      item: { name: 'violin', at: 'torso', layer: 'mid', off: [3, -8] }, stroke: { at: 'front', a: [-7, -3], b: [2, 5], c: 'n' },
+      face: 'happy', back: [[9, -2], [20, -3]], front: [[4, 3], [7, 0]], legB: LEG_STRAIGHT, legF: LEG_STRAIGHT,
+      item: { name: 'violin', at: 'torso', layer: 'mid', off: [2, -9] }, stroke: { at: 'front', a: [-10, -6], b: [3, 6], c: 'n' },
     },
   ],
   // seduto sul bordo della barra, legge ad alta voce
   read: [
-    { face: 'read', dy: 6, back: [[3, 4], [8, 3]], front: [[2, 4], [6, 2]], legB: SIT_LEGS_A[0], legF: SIT_LEGS_A[1], item: { name: 'book', at: 'front', layer: 'top' } },
-    { face: 'look', dy: 6, back: [[3, 4], [8, 3]], front: [[2, 4], [6, 2]], legB: SIT_LEGS_B[0], legF: SIT_LEGS_B[1], item: { name: 'book', at: 'front', layer: 'top' } },
+    { face: 'read', dy: 6, back: [[3, 3], [8, 1]], front: [[3, 3], [6, 1]], legB: SIT_LEGS_A[0], legF: SIT_LEGS_A[1], item: { name: 'book', at: 'front', layer: 'top' } },
+    { face: 'look', dy: 6, back: [[3, 3], [8, 1]], front: [[3, 3], [6, 1]], legB: SIT_LEGS_B[0], legF: SIT_LEGS_B[1], item: { name: 'book', at: 'front', layer: 'top' } },
   ],
   // alla lavagna: scrive e poi spiega
   teachWrite: [

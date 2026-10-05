@@ -962,6 +962,12 @@ export class Mini {
       p.style.left = `${(W / 2 + this.facing * dx) * this.scale}px`;
       p.style.top = `${(opts.dy ?? (seated ? 10 : 4)) * this.scale}px`;
       this.root.append(p);
+      if (kind === 'say') {
+        // tiene il fumetto dentro lo schermo
+        const r = p.getBoundingClientRect();
+        const over = r.right > innerWidth - 8 ? innerWidth - 8 - r.right : r.left < 8 ? 8 - r.left : 0;
+        if (over) p.style.marginLeft = `${over}px`;
+      }
       setTimeout(() => p.remove(), kind === 'say' ? 2600 : 2200);
     }
   }
