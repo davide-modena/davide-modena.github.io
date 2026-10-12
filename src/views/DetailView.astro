@@ -3,6 +3,7 @@ import Base from '../layouts/Base.astro';
 import Stage from '../components/Stage.astro';
 import DotCover from '../components/DotCover.astro';
 import AiNote from '../components/AiNote.astro';
+import GlyphStrips from '../components/GlyphStrips.astro';
 import { render } from 'astro:content';
 import { getLocalized } from '../lib/content';
 import { useTranslations, path, otherLang } from '../i18n/utils';
@@ -89,7 +90,11 @@ const meta: { label: string; value: string; href?: string }[] =
             </div>
           ) : (
             <div class="lab-visual lab-card">
-              <DotCover seed={slug} kind={d.kind} glyph={d.glyph} cols={72} />
+              {d.visual === 'glyph-strips' ? (
+                <GlyphStrips />
+              ) : (
+                <DotCover seed={slug} kind={d.kind} glyph={d.glyph} cols={72} />
+              )}
             </div>
           )
         }
@@ -195,15 +200,12 @@ const meta: { label: string; value: string; href?: string }[] =
     bottom: 24px;
   }
   .content {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 2.2fr);
-    gap: 48px;
+    width: min(100%, 700px);
+    margin-inline: auto;
     padding: clamp(56px, 8vw, 120px) 0;
   }
-  .side {
-    position: sticky;
-    top: calc(var(--header-h) + 24px);
-    align-self: start;
+  .side:not(:empty) {
+    margin-bottom: 32px;
   }
   .next {
     display: block;
@@ -235,13 +237,6 @@ const meta: { label: string; value: string; href?: string }[] =
     }
   }
   @media (max-width: 800px) {
-    .content {
-      grid-template-columns: minmax(0, 1fr);
-      gap: 24px;
-    }
-    .side {
-      position: static;
-    }
     .meta div + div {
       padding-left: 0;
       border-left: 0;

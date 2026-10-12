@@ -463,7 +463,9 @@ kbd {
   font-size: 17px;
   line-height: 1.75;
   color: var(--fg-2);
-  max-width: 68ch;
+  /* colonna di lettura: sempre centrata e sempre della stessa larghezza */
+  width: min(100%, 700px);
+  margin-inline: auto;
 }
 .prose > * + * {
   margin-top: 1.15em;
@@ -553,6 +555,27 @@ kbd {
 .prose img {
   border-radius: var(--radius);
   border: 1px solid var(--line);
+}
+/* immagini, video, mockup e tabelle: sempre al centro della colonna */
+.prose > img,
+.prose > p > img:only-child,
+.prose > figure,
+.prose > video,
+.prose > table {
+  display: block;
+  margin-inline: auto;
+  max-width: 100%;
+}
+.prose figure {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.prose figure > * {
+  width: 100%;
+}
+.prose figcaption {
+  text-align: center;
 }
 
 /* evidenziazione del codice: Shiki genera entrambi i temi, qui si sceglie quello chiaro */
