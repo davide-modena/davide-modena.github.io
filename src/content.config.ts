@@ -41,6 +41,8 @@ const lab = defineCollection({
     ai: z.boolean().default(false),
     /** simbolo mostrato nella copertina generata */
     glyph: z.string().default('●'),
+    /** 'dots' = copertina generata; 'glyph-strips' = le strisce animate della Glyph Matrix */
+    visual: z.enum(['dots', 'glyph-strips']).default('dots'),
   }),
 });
 

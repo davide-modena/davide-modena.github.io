@@ -1,0 +1,248 @@
+---
+// La notifica live di Hevy Companion. Se passi `video` (e `poster`) mostra la registrazione vera;
+// altrimenti ne ricostruisce il comportamento in HTML: una notifica che cambia stato, col chip in alto.
+interface Props {
+  video?: string;
+  poster?: string;
+  /** nome dell'esercizio nella ricostruzione */
+  exercise?: string;
+}
+const { video, poster, exercise = 'Iso-Lateral Chest Press (Machine)' } = Astro.props;
+---
+
+<figure class="live" data-live-notification>
+  <div class="screen">
+    {
+      video ? (
+        <video src={video} poster={poster} autoplay muted loop playsinline preload="metadata" />
+      ) : (
+        <div class="ui" aria-hidden="true">
+          <div class="chip mono">
+            <span class="mark">◐</span>
+            <span data-chip>3/3</span>
+          </div>
+          <div class="card">
+            <div class="head">
+              <span class="app">Hevy Companion</span>
+              <span class="sep">·</span>
+              <span data-sub>Workout</span>
+              <span class="sep">·</span>
+              <span class="time" data-time>04:05</span>
+            </div>
+            <div class="title">{exercise}</div>
+            <div class="text" data-text>Set 3/3 · 40 kg × 12-15 reps</div>
+            <div class="seg" data-seg>
+              <i />
+              <i />
+              <i />
+            </div>
+            <div class="rest-bar" data-rest hidden>
+              <i data-fill />
+            </div>
+            <button type="button" class="act" tabindex="-1" data-action>Complete set</button>
+          </div>
+        </div>
+      )
+    }
+  </div>
+  <figcaption class="mono">
+    {video ? 'Registrazione dal telefono.' : 'Ricostruzione in HTML: durante il set cambia il chip; durante il riposo conto alla rovescia e barra che si svuota.'}
+  </figcaption>
+</figure>
+
+<style>
+  .live {
+    margin: 0;
+  }
+  .screen {
+    max-width: 440px;
+    border: 1px solid var(--line-2);
+    border-radius: 14px;
+    background: #0b0b0c;
+    overflow: hidden;
+  }
+  video {
+    display: block;
+    width: 100%;
+  }
+  .ui {
+    display: grid;
+    gap: 14px;
+    padding: 14px;
+    color: #ececec;
+    font-family: var(--sans);
+  }
+  .chip {
+    justify-self: end;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 96px;
+    justify-content: center;
+    padding: 5px 12px 5px 9px;
+    border-radius: 99px;
+    background: #1b1b1d;
+    font-size: 14px;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+  .mark {
+    font-size: 13px;
+    opacity: 0.85;
+  }
+  .card {
+    display: grid;
+    gap: 6px;
+    padding: 14px 16px 14px;
+    border-radius: 22px;
+    background: #1d1d20;
+  }
+  .head {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 6px;
+    font-size: 12.5px;
+    color: #a8a8ad;
+  }
+  .time {
+    font-variant-numeric: tabular-nums;
+  }
+  .title {
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 1.3;
+  }
+  .text {
+    font-size: 14px;
+    color: #cfcfd3;
+    font-variant-numeric: tabular-nums;
+  }
+  .seg {
+    display: flex;
+    gap: 5px;
+    margin-top: 8px;
+  }
+  .seg i {
+    flex: 1;
+    height: 5px;
+    border-radius: 99px;
+    background: #4a4a50;
+    transition: background 0.4s;
+  }
+  .seg i.done {
+    background: #f2f2f2;
+  }
+  .seg i.now {
+    background: #8c8c92;
+  }
+  .rest-bar {
+    margin-top: 8px;
+    height: 5px;
+    border-radius: 99px;
+    background: #4a4a50;
+    overflow: hidden;
+  }
+  .rest-bar i {
+    display: block;
+    height: 100%;
+    width: 100%;
+    background: #f2f2f2;
+    transform-origin: left;
+  }
+  .act {
+    margin-top: 10px;
+    padding: 9px 12px;
+    border: 1px solid #55555b;
+    border-radius: 99px;
+    background: transparent;
+    color: #ececec;
+    font: inherit;
+    font-size: 14px;
+    cursor: default;
+  }
+  figcaption {
+    margin-top: 10px;
+    max-width: 62ch;
+    font-size: 12px;
+    color: var(--fg-3);
+  }
+</style>
+
+<script>
+  import { reducedMotion } from '../scripts/glyph';
+
+  // un set dura 7 s, il riposo 10 s; il giro è set 1, riposo, set 2, riposo, set 3, riposo
+  const WORK_MS = 7000;
+  const REST_MS = 10000;
+  const SETS = 3;
+  const CYCLE = SETS * (WORK_MS + REST_MS);
+  const fmt = (s: number) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+
+  document.querySelectorAll<HTMLElement>('[data-live-notification]').forEach((root) => {
+    const q = <T extends HTMLElement>(sel: string) => root.querySelector<T>(sel);
+    const chip = q('[data-chip]');
+    if (!chip) return; // c'è il video
+    const sub = q('[data-sub]')!;
+    const time = q('[data-time]')!;
+    const text = q('[data-text]')!;
+    const seg = q('[data-seg]')!;
+    const bars = [...seg.querySelectorAll('i')];
+    const rest = q('[data-rest]')!;
+    const fill = q<HTMLElement>('[data-fill]')!;
+    const action = q('[data-action]')!;
+    const CHIPS = ['SET', '40 kg', '12-15 reps'];
+    const WORKOUT_START = 4 * 60 + 5 - 40;
+
+    let visible = false;
+    let timer = 0;
+    let t0 = performance.now();
+
+    function render(ms: number) {
+      const slot = Math.floor((ms % CYCLE) / (WORK_MS + REST_MS));
+      const inSlot = (ms % CYCLE) - slot * (WORK_MS + REST_MS);
+      const setNo = slot + 1;
+      const resting = inSlot >= WORK_MS;
+      time.textContent = fmt(WORKOUT_START + ms / 1000);
+      if (!resting) {
+        sub.textContent = 'Workout';
+        text.textContent = `Set ${setNo}/${SETS} · 40 kg × 12-15 reps`;
+        bars.forEach((b, i) => (b.className = i < setNo - 1 ? 'done' : i === setNo - 1 ? 'now' : ''));
+        seg.hidden = false;
+        rest.hidden = true;
+        action.textContent = 'Complete set';
+        const c = Math.floor(inSlot / 3000) % CHIPS.length;
+        chip.textContent = c === 0 ? `${setNo}/${SETS}` : CHIPS[c];
+      } else {
+        const left = REST_MS - (inSlot - WORK_MS);
+        const next = setNo < SETS ? setNo + 1 : 1;
+        sub.textContent = 'Rest';
+        time.textContent = fmt(left / 1000);
+        text.textContent = `Next: Set ${next}/${SETS} · 40 kg × 12-15 reps`;
+        seg.hidden = true;
+        rest.hidden = false;
+        fill.style.transform = `scaleX(${(left / REST_MS).toFixed(3)})`;
+        action.textContent = 'Skip rest';
+        chip.textContent = `0:${String(Math.ceil(left / 1000)).padStart(2, '0')}`;
+      }
+    }
+
+    function tick() {
+      render(performance.now() - t0);
+    }
+    function start() {
+      if (!timer && !reducedMotion()) timer = window.setInterval(tick, 200);
+    }
+    function stop() {
+      window.clearInterval(timer);
+      timer = 0;
+    }
+    render(0);
+    new IntersectionObserver((e) => {
+      visible = e[0].isIntersecting;
+      if (visible) {
+        t0 = performance.now();
+        start();
+      } else stop();
+    }).observe(root);
+  });
+</script>

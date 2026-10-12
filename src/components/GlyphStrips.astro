@@ -1,0 +1,225 @@
+---
+// Strisce diagonali di Glyph Matrix, ognuna con lo stickman del suo esercizio, che scorrono da sole.
+// Resta sempre scuro (è uno schermo); R raddrizza i singoli Glyph senza cambiare lo scorrimento.
+---
+
+<div class="strips" data-glyph-strips>
+  <canvas role="img" aria-label="Strisce diagonali di Glyph Matrix con gli stickman degli esercizi in movimento"></canvas>
+  <div class="bar mono">
+    <button type="button" data-act="straight" aria-pressed="false" title="R"><kbd>R</kbd> glyph dritti</button>
+    <button type="button" data-act="pause" aria-pressed="false">pausa</button>
+  </div>
+</div>
+
+<style>
+  .strips {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 21 / 9;
+    background: #060607;
+    overflow: hidden;
+    isolation: isolate;
+  }
+  canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  .strips::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse 75% 70% at 50% 50%, transparent 50%, rgb(0 0 0 / 0.7) 100%),
+      linear-gradient(90deg, rgb(6 6 7 / 0.85), transparent 12%, transparent 88%, rgb(6 6 7 / 0.85));
+  }
+  .bar {
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+    z-index: 2;
+    display: flex;
+    gap: 6px;
+    font-size: 11.5px;
+  }
+  button {
+    padding: 5px 10px;
+    border: 1px solid rgb(255 255 255 / 0.16);
+    border-radius: 99px;
+    background: rgb(10 10 10 / 0.7);
+    color: #bdbdbd;
+    backdrop-filter: blur(6px);
+    cursor: pointer;
+    transition:
+      color 0.2s,
+      border-color 0.2s;
+  }
+  button:hover,
+  button[aria-pressed='true'] {
+    color: #fff;
+    border-color: rgb(255 255 255 / 0.45);
+  }
+  button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  kbd {
+    font: inherit;
+    padding: 0 4px;
+    margin-right: 2px;
+    border: 1px solid rgb(255 255 255 / 0.25);
+    border-radius: 4px;
+  }
+  @media (max-width: 700px) {
+    .strips {
+      aspect-ratio: 4 / 3;
+    }
+  }
+</style>
+
+<script>
+  import { drawMatrix, frameOf, loadAnims, reducedMotion, type Anim } from '../scripts/glyph';
+
+  const ANGLE = (-17 * Math.PI) / 180;
+  const ROWS = 7;
+  const MULT = [3, 5, 7, 9, 11, 13, 15];
+
+  document.querySelectorAll<HTMLElement>('[data-glyph-strips]').forEach((root) => {
+    const canvas = root.querySelector('canvas')!;
+    const ctx = canvas.getContext('2d')!;
+    const btnStraight = root.querySelector<HTMLButtonElement>('[data-act="straight"]')!;
+    const btnPause = root.querySelector<HTMLButtonElement>('[data-act="pause"]')!;
+    const mono = getComputedStyle(root).getPropertyValue('--mono').trim() || 'ui-monospace, monospace';
+
+    let anims: Anim[] = [];
+    let orders: number[][] = [];
+    let W = 0;
+    let H = 0;
+    let dpr = 1;
+    let clock = 0;
+    let last: number | null = null;
+    let visible = false;
+    let paused = reducedMotion();
+    let straightTarget = 0;
+    let straight = 0;
+    let lastReal: number | null = null;
+    let raf = 0;
+    btnPause.textContent = paused ? 'riproduci' : 'pausa';
+    btnPause.setAttribute('aria-pressed', String(paused));
+
+    function resize() {
+      dpr = Math.min(2, window.devicePixelRatio || 1);
+      W = root.clientWidth;
+      H = root.clientHeight;
+      canvas.width = Math.round(W * dpr);
+      canvas.height = Math.round(H * dpr);
+    }
+    new ResizeObserver(() => {
+      resize();
+      last = null; // resizing clears the canvas: draw again even when paused
+      schedule();
+    }).observe(root);
+    resize();
+
+    function frame(now: number) {
+      raf = 0;
+      if (!anims.length) return;
+      if (last !== null && !paused) clock += Math.max(0, now - last);
+      last = now;
+      if (lastReal !== null) {
+        const step = Math.max(0, now - lastReal) / 900;
+        straight = straight < straightTarget ? Math.min(straightTarget, straight + step) : Math.max(straightTarget, straight - step);
+      }
+      lastReal = now;
+      const eased = straight * straight * (3 - 2 * straight);
+
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.fillStyle = '#060607';
+      ctx.fillRect(0, 0, W, H);
+      const diag = Math.hypot(W, H);
+      // altezza di una striscia: più bassa = più Glyph in vista, meno "zoom"
+      const rowH = Math.max(84, H * 0.34);
+      const tile = rowH * 0.74;
+      const gap = rowH * 0.34;
+      const pitch = tile + gap;
+      const rows = Math.ceil(diag / rowH) + 1;
+
+      ctx.translate(W / 2, H / 2);
+      ctx.rotate(ANGLE);
+      for (let r = 0; r < rows; r++) {
+        const ri = r % ROWS;
+        const y = (r - (rows - 1) / 2) * rowH - rowH / 2;
+        ctx.fillStyle = r % 2 ? 'rgba(255,255,255,.022)' : 'rgba(255,255,255,.008)';
+        ctx.fillRect(-diag, y, diag * 2, rowH);
+        const dir = r % 2 ? -1 : 1;
+        const off = (dir * rowH * (0.16 + 0.035 * (ri % 4)) * clock) / 1000;
+        const shift = ((off % pitch) + pitch) % pitch;
+        const base = Math.floor(off / pitch);
+        const count = Math.ceil(diag / pitch) + 2;
+        for (let i = -1; i < count; i++) {
+          const x = -diag / 2 + i * pitch - shift;
+          const k = (((base + i) % anims.length) + anims.length) % anims.length;
+          const a = anims[orders[ri][k]];
+          ctx.save();
+          ctx.translate(x + tile / 2, y + rowH / 2 - rowH * 0.05);
+          ctx.rotate(-ANGLE * eased);
+          drawMatrix(ctx, frameOf(a, clock + orders[ri][k] * 331 + ri * 977), -tile / 2, -tile / 2, tile);
+          ctx.fillStyle = 'rgba(237,237,237,.62)';
+          ctx.font = `${Math.max(9, rowH * 0.07)}px ${mono}`;
+          ctx.textAlign = 'center';
+          ctx.fillText(a.label.toUpperCase(), 0, tile / 2 + rowH * 0.13);
+          ctx.restore();
+        }
+      }
+      schedule();
+    }
+
+    function schedule() {
+      // ferma il disegno quando la pagina è fuori schermo o in pausa e il raddrizzamento è finito
+      const moving = !paused || straight !== straightTarget;
+      if (!raf && visible && anims.length && (moving || last === null)) raf = requestAnimationFrame(frame);
+    }
+
+    new IntersectionObserver(
+      (e) => {
+        visible = e[0].isIntersecting;
+        if (visible) {
+          last = null;
+          lastReal = null;
+          loadAnims().then((a) => {
+            if (!anims.length) {
+              anims = a;
+              orders = Array.from({ length: ROWS }, (_, r) => a.map((_, i) => (i * MULT[r] + r * 5) % a.length));
+            }
+            schedule();
+          });
+        }
+      },
+      { rootMargin: '120px' },
+    ).observe(root);
+
+    function setStraight(on: boolean) {
+      straightTarget = on ? 1 : 0;
+      btnStraight.setAttribute('aria-pressed', String(on));
+      lastReal = null;
+      schedule();
+    }
+    btnStraight.addEventListener('click', () => setStraight(!straightTarget));
+    btnPause.addEventListener('click', () => {
+      paused = !paused;
+      btnPause.textContent = paused ? 'riproduci' : 'pausa';
+      btnPause.setAttribute('aria-pressed', String(paused));
+      last = null;
+      schedule();
+    });
+    window.addEventListener('keydown', (e) => {
+      if (e.key.toLowerCase() !== 'r' || e.metaKey || e.ctrlKey || e.altKey || !visible) return;
+      const t = e.target as HTMLElement | null;
+      if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
+      setStraight(!straightTarget);
+    });
+  });
+</script>

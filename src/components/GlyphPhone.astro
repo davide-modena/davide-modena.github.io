@@ -1,0 +1,233 @@
+---
+// Il retro del Nothing Phone (3) disegnato con i colori del sito; la Glyph in alto a destra gira i
+// fotogrammi veri dell'app.
+//
+// TODO: questo è un segnaposto. Al suo posto andrà un MOCKUP VERO (foto del telefono su una panca, in
+// palestra, con la Glyph proiettata in prospettiva). La Glyph animata resta un <canvas> posizionato sopra la
+// foto: basta sostituire <svg> con l'immagine e rimettere left/top/width del <canvas> sull'ellisse del vetro.
+// Niente foto di Nothing: serve una foto propria.
+---
+
+<figure class="phone-fig" data-glyph-phone>
+  <div class="phone">
+    <svg viewBox="0 0 150 316" aria-hidden="true">
+      <rect x="2" y="2" width="146" height="312" rx="24" class="body" />
+      <rect x="7" y="7" width="136" height="302" rx="19" class="inner" />
+      <rect x="10" y="10" width="76" height="106" rx="12" class="panel" />
+      <circle cx="68" cy="36" r="17" class="coil" />
+      <circle cx="68" cy="36" r="10" class="coil" />
+      <circle cx="29" cy="34" r="12" class="lens" />
+      <circle cx="36" cy="70" r="13" class="lens" />
+      <circle cx="72" cy="70" r="13" class="lens" />
+      <rect x="52" y="94" width="6" height="6" class="dot" />
+      <circle cx="116" cy="36" r="22" class="disc" />
+      <rect x="10" y="124" width="130" height="86" rx="4" class="panel" />
+      <circle cx="96" cy="190" r="40" class="coil" />
+      <circle cx="96" cy="190" r="24" class="coil" />
+      <rect x="10" y="218" width="58" height="46" rx="4" class="panel" />
+      <rect x="14" y="272" width="122" height="30" rx="6" class="panel" />
+    </svg>
+    <canvas width="240" height="240" aria-hidden="true"></canvas>
+  </div>
+  <figcaption>
+    <div class="chips mono" role="group" aria-label="Esercizio" data-chips></div>
+    <p class="now mono" data-now aria-live="off">&nbsp;</p>
+  </figcaption>
+</figure>
+
+<style>
+  .phone-fig {
+    display: grid;
+    justify-items: center;
+    gap: 18px;
+    margin: 0;
+    padding: clamp(24px, 4vw, 48px) 16px;
+    border: 1px solid var(--line-2);
+    border-radius: 12px;
+    background:
+      radial-gradient(60% 70% at 50% 40%, var(--bg-3), transparent 80%),
+      var(--bg-2);
+  }
+  .phone {
+    position: relative;
+    width: min(230px, 60%);
+    aspect-ratio: 150 / 316;
+    filter: drop-shadow(0 30px 40px rgb(0 0 0 / 0.35));
+  }
+  svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .body {
+    fill: var(--bg-3);
+    stroke: var(--line-2);
+    stroke-width: 1.5;
+  }
+  .inner,
+  .panel,
+  .coil {
+    fill: none;
+    stroke: var(--line-2);
+    stroke-width: 0.8;
+  }
+  .panel {
+    fill: var(--bg-2);
+  }
+  .lens {
+    fill: #0b0b0c;
+    stroke: var(--fg-3);
+    stroke-width: 1.4;
+  }
+  .dot {
+    fill: var(--accent);
+  }
+  .disc {
+    fill: #000;
+    stroke: var(--fg-3);
+    stroke-width: 1.2;
+  }
+  canvas {
+    position: absolute;
+    left: 64%;
+    top: 5.06%;
+    width: 26.7%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+  }
+  figcaption {
+    display: grid;
+    justify-items: center;
+    gap: 10px;
+  }
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+    max-width: 62ch;
+  }
+  .chips :global(button) {
+    padding: 5px 10px;
+    border: 1px solid var(--line-2);
+    border-radius: 99px;
+    background: transparent;
+    color: var(--fg-2);
+    font-size: 12px;
+    cursor: pointer;
+    transition:
+      color 0.2s,
+      border-color 0.2s,
+      background 0.2s;
+  }
+  .chips :global(button:hover) {
+    color: var(--fg);
+    border-color: var(--fg-3);
+  }
+  .chips :global(button[aria-pressed='true']) {
+    background: var(--fg);
+    border-color: var(--fg);
+    color: var(--bg);
+  }
+  .chips :global(button:focus-visible) {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .now {
+    margin: 0;
+    min-height: 1.5em;
+    font-size: 12.5px;
+    color: var(--fg-3);
+    font-variant-numeric: tabular-nums;
+  }
+</style>
+
+<script>
+  import { cycleFrame, drawMatrix, loadAnims, reducedMotion, type Anim, type Phase } from '../scripts/glyph';
+
+  const FAVOURITES = [
+    'bench press', 'cable fly', 'dumbbell curl', 'crunch machine', 'shoulder press', 'lateral raise',
+    'triceps pushdown', 'skullcrusher', 'leg press', 'lat pulldown', 'iso-lateral row', 'deadlift', 'squat',
+  ];
+  const PHASE_TEXT: Record<Phase, string> = {
+    set: 'set e peso',
+    motion: 'lo stickman fa la ripetizione',
+    rest: 'riposo: la sabbia sale, i secondi a centro',
+    next: 'riposo: i dati del prossimo set sulla sabbia',
+    alert: 'fine del riposo',
+  };
+
+  document.querySelectorAll<HTMLElement>('[data-glyph-phone]').forEach((root) => {
+    const canvas = root.querySelector('canvas')!;
+    const ctx = canvas.getContext('2d')!;
+    const chips = root.querySelector<HTMLElement>('[data-chips]')!;
+    const nowEl = root.querySelector<HTMLElement>('[data-now]')!;
+    let anims: Anim[] = [];
+    let current: Anim | null = null;
+    let t0 = performance.now();
+    let visible = false;
+    let raf = 0;
+    let lastKey = '';
+    const still = reducedMotion();
+
+    function paint(ms: number) {
+      if (!current) return;
+      const { frame, phase } = cycleFrame(current, ms);
+      drawMatrix(ctx, frame, 0, 0, canvas.width);
+      if (nowEl.dataset.p !== phase) {
+        nowEl.dataset.p = phase;
+        nowEl.textContent = `${current.label} · ${PHASE_TEXT[phase]}`;
+      }
+    }
+    function loop(now: number) {
+      raf = 0;
+      const ms = now - t0;
+      const key = String(Math.floor(ms / 50));
+      if (key !== lastKey) {
+        lastKey = key;
+        paint(ms);
+      }
+      if (visible && !still) raf = requestAnimationFrame(loop);
+    }
+    function kick() {
+      if (!raf && visible) raf = requestAnimationFrame(loop);
+    }
+
+    function pick(a: Anim) {
+      current = a;
+      t0 = performance.now();
+      lastKey = '';
+      nowEl.dataset.p = '';
+      chips.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.id === a.id)));
+      paint(0);
+      kick();
+    }
+
+    new IntersectionObserver((e) => {
+      visible = e[0].isIntersecting;
+      if (visible) {
+        loadAnims().then((a) => {
+          if (!anims.length) {
+            anims = [...a].sort((x, y) => {
+              const ix = FAVOURITES.indexOf(x.id);
+              const iy = FAVOURITES.indexOf(y.id);
+              return (ix < 0 ? 99 : ix) - (iy < 0 ? 99 : iy);
+            });
+            anims.forEach((x) => {
+              const b = document.createElement('button');
+              b.type = 'button';
+              b.dataset.id = x.id;
+              b.textContent = x.label;
+              b.setAttribute('aria-pressed', 'false');
+              b.addEventListener('click', () => pick(x));
+              chips.appendChild(b);
+            });
+            pick(anims[0]);
+          }
+          kick();
+        });
+      }
+    }).observe(root);
+  });
+</script>

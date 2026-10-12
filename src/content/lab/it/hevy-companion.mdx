@@ -3,12 +3,50 @@ title: Hevy Companion
 tagline: L'allenamento di Hevy come notifica live e timer di recupero sulla Glyph Matrix del Nothing Phone.
 year: '2026'
 kind: app
-stack: [Android, Kotlin, Glyph SDK]
+stack: [Android, Kotlin, Glyph SDK, Wear OS]
+repo: https://github.com/davide-modena/hevy-companion
 order: 8
 glyph: '◐'
+visual: glyph-strips
 ---
+
+import GlyphPhone from '../../../components/GlyphPhone.astro';
+import LiveNotification from '../../../components/LiveNotification.astro';
 
 ## L'idea
 
 Legge la notifica di Hevy e la trasforma in una notifica live in stile Android 16 che segue l'allenamento,
 più un timer di recupero disegnato sui LED sul retro del Nothing Phone (3).
+
+## La Glyph
+
+{/* TODO: sostituire <GlyphPhone /> (disegno segnaposto) con il mockup vero: foto del telefono su una panca, in palestra. */}
+<GlyphPhone />
+
+Durante il riposo la sabbia sale come nel timer di Nothing, con i secondi totali al centro; ogni tanto il conto
+lascia il posto ai dati del prossimo set, scritti sopra la sabbia in negativo. Tra un riposo e l'altro la Glyph
+alterna set e peso a uno **stickman che fa l'esercizio**, scelto dal nome: ce ne sono 16, disegnati a scheletro
+con una cinematica a due ossa, così i gomiti non si ribaltano a metà ripetizione.
+
+## La notifica
+
+<LiveNotification />
+
+Una sola notifica che cambia stato: durante il set mostra serie, peso e ripetizioni con un segmento per serie;
+durante il riposo il conto alla rovescia e una barra che si svuota. I pulsanti premono quelli di Hevy, e il chip
+nella barra di stato ruota tra serie, kg e ripetizioni.
+
+## Dal polso
+
+Il TicWatch E3 mostra le stesse scene della Glyph, nello stesso momento, con le scorciatoie per completare il
+set o saltare il riposo. Il telefono non manda i fotogrammi: manda lo stato dell'allenamento, e i due disegnano
+con lo stesso motore, quindi cadono sullo stesso fotogramma. Due stili: la Glyph copiata, oppure lo stesso layout
+con i dati in un font a matrice di punti.
+
+## Sotto il cofano
+
+- Hevy non espone l'allenamento in corso: l'app **legge le sue notifiche** con un servizio di ascolto, ne gonfia
+  il layout personalizzato e ne estrae esercizio, serie e timer dagli id delle view.
+- Il motore è Kotlin puro e sta in un modulo condiviso tra telefono e orologio. Un test lo confronta pixel per
+  pixel con il prototipo Python in cui le animazioni sono nate.
+- Le animazioni si disegnano e si rivedono in una pagina di anteprima prima di finire nell'app.
