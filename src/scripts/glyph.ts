@@ -208,29 +208,32 @@ export function alertFrame(sinceMs: number): Uint8Array {
 export type Phase = 'set' | 'motion' | 'rest' | 'next' | 'alert';
 
 const SET_MS = 2500;
-const REST_MS = 9000;
+export const REST_MS = 9000;
 const ALERT_MS = 3000;
 const COUNTDOWN_MS = 3000;
 const wholeCycles = (cycle: number, min: number) => cycle * Math.max(1, Math.ceil(min / cycle));
 
-export function cycleLength(a: Anim) {
-  return SET_MS + wholeCycles(a.period, 4000) + REST_MS + ALERT_MS;
+export function cycleLength(a: Anim, restMs = REST_MS) {
+  return SET_MS + wholeCycles(a.period, 4000) + restMs + ALERT_MS;
 }
 
+/** Istante del giro in cui comincia il riposo. */
+export const restStart = (a: Anim) => SET_MS + wholeCycles(a.period, 4000);
+
 /** Un giro completo come nell'app: set, ripetizioni intere dello stickman, riposo (conto e prossimo set), flash. */
-export function cycleFrame(a: Anim, ms: number): { frame: Uint8Array; phase: Phase } {
+export function cycleFrame(a: Anim, ms: number, restMs = REST_MS): { frame: Uint8Array; phase: Phase } {
   const motion = wholeCycles(a.period, 4000);
-  const t = ms % (SET_MS + motion + REST_MS + ALERT_MS);
+  const t = ms % cycleLength(a, restMs);
   const lines = a.id === 'running' ? ['1/1', '0.56', '07:30'] : ['2/3', '30x15'];
   const next = a.id === 'running' ? lines : ['3/3', '30x15'];
   if (t < SET_MS) return { frame: setFrame(lines), phase: 'set' };
   if (t < SET_MS + motion) return { frame: frameOf(a, t - SET_MS), phase: 'motion' };
   const r = t - SET_MS - motion;
-  if (r < REST_MS) {
+  if (r < restMs) {
     const data = r % (COUNTDOWN_MS + SET_MS) >= COUNTDOWN_MS;
-    return { frame: restFrame(REST_MS - r, REST_MS, r, data ? next : null), phase: data ? 'next' : 'rest' };
+    return { frame: restFrame(restMs - r, restMs, r, data ? next : null), phase: data ? 'next' : 'rest' };
   }
-  return { frame: alertFrame(r - REST_MS), phase: 'alert' };
+  return { frame: alertFrame(r - restMs), phase: 'alert' };
 }
 
 /** True se l'utente chiede meno movimento. */

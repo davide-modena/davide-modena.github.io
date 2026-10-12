@@ -1,36 +1,26 @@
 ---
-// Il retro del Nothing Phone (3) disegnato con i colori del sito; la Glyph in alto a destra gira i
-// fotogrammi veri dell'app.
-//
-// TODO: questo è un segnaposto. Al suo posto andrà un MOCKUP VERO (foto del telefono su una panca, in
-// palestra, con la Glyph proiettata in prospettiva). La Glyph animata resta un <canvas> posizionato sopra la
-// foto: basta sostituire <svg> con l'immagine e rimettere left/top/width del <canvas> sull'ellisse del vetro.
-// Niente foto di Nothing: serve una foto propria.
+// Il Nothing Phone (3) su un pavimento da palestra (bianco col tema chiaro, nero col tema scuro); la Glyph in
+// alto a destra gira i fotogrammi veri dell'app. Il <canvas> sta sopra il cerchio del vetro: posizione e
+// inclinazione (--tilt) sono misurate sul ritaglio 700×467 (x 280, y 202) dei mockup 1264×843.
+import light from '../assets/mockup/phone-light.webp';
+import dark from '../assets/mockup/phone-dark.webp';
 ---
 
 <figure class="phone-fig" data-glyph-phone>
   <div class="phone">
-    <svg viewBox="0 0 150 316" aria-hidden="true">
-      <rect x="2" y="2" width="146" height="312" rx="24" class="body" />
-      <rect x="7" y="7" width="136" height="302" rx="19" class="inner" />
-      <rect x="10" y="10" width="76" height="106" rx="12" class="panel" />
-      <circle cx="68" cy="36" r="17" class="coil" />
-      <circle cx="68" cy="36" r="10" class="coil" />
-      <circle cx="29" cy="34" r="12" class="lens" />
-      <circle cx="36" cy="70" r="13" class="lens" />
-      <circle cx="72" cy="70" r="13" class="lens" />
-      <rect x="52" y="94" width="6" height="6" class="dot" />
-      <circle cx="116" cy="36" r="22" class="disc" />
-      <rect x="10" y="124" width="130" height="86" rx="4" class="panel" />
-      <circle cx="96" cy="190" r="40" class="coil" />
-      <circle cx="96" cy="190" r="24" class="coil" />
-      <rect x="10" y="218" width="58" height="46" rx="4" class="panel" />
-      <rect x="14" y="272" width="122" height="30" rx="6" class="panel" />
-    </svg>
-    <canvas width="240" height="240" aria-hidden="true"></canvas>
+    <img class="img-light" src={light.src} width={light.width} height={light.height} alt="Nothing Phone (3) bianco appoggiato su un pavimento da palestra, con la Glyph accesa" loading="lazy" decoding="async" />
+    <img class="img-dark" src={dark.src} width={dark.width} height={dark.height} alt="Nothing Phone (3) nero appoggiato su un pavimento da palestra, con la Glyph accesa" loading="lazy" decoding="async" />
+    <canvas width="160" height="160" aria-hidden="true"></canvas>
   </div>
   <figcaption>
-    <div class="chips mono" role="group" aria-label="Esercizio" data-chips></div>
+    <div class="row">
+      <span class="lbl mono">esercizio</span>
+      <div class="chips mono" role="group" aria-label="Esercizio" data-chips></div>
+    </div>
+    <div class="row">
+      <span class="lbl mono">riposo</span>
+      <div class="chips mono" role="group" aria-label="Durata del riposo" data-timer></div>
+    </div>
     <p class="now mono" data-now aria-live="off">&nbsp;</p>
   </figcaption>
 </figure>
@@ -50,56 +40,56 @@
   }
   .phone {
     position: relative;
-    width: min(230px, 60%);
-    aspect-ratio: 150 / 316;
-    filter: drop-shadow(0 30px 40px rgb(0 0 0 / 0.35));
+    width: min(860px, 100%);
+    aspect-ratio: 700 / 467;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 24px 50px rgb(0 0 0 / 0.3);
   }
-  svg {
+  .phone img {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
+    object-fit: cover;
   }
-  .body {
-    fill: var(--bg-3);
-    stroke: var(--line-2);
-    stroke-width: 1.5;
+  .img-light {
+    display: none;
   }
-  .inner,
-  .panel,
-  .coil {
-    fill: none;
-    stroke: var(--line-2);
-    stroke-width: 0.8;
+  :global(:root[data-theme='light']) .img-light {
+    display: block;
   }
-  .panel {
-    fill: var(--bg-2);
-  }
-  .lens {
-    fill: #0b0b0c;
-    stroke: var(--fg-3);
-    stroke-width: 1.4;
-  }
-  .dot {
-    fill: var(--accent);
-  }
-  .disc {
-    fill: #000;
-    stroke: var(--fg-3);
-    stroke-width: 1.2;
+  :global(:root[data-theme='light']) .img-dark {
+    display: none;
   }
   canvas {
     position: absolute;
-    left: 64%;
-    top: 5.06%;
-    width: 26.7%;
+    left: 62.29%;
+    top: 27.4%;
+    width: 5.9%;
     aspect-ratio: 1;
+    transform: translate(-50%, -50%) rotate(21deg) scaleY(0.97);
     border-radius: 50%;
   }
   figcaption {
     display: grid;
     justify-items: center;
     gap: 10px;
+    width: 100%;
+  }
+  .row {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px 10px;
+  }
+  .lbl {
+    min-width: 6.5ch;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--fg-3);
   }
   .chips {
     display: flex;
@@ -144,7 +134,9 @@
 </style>
 
 <script>
-  import { cycleFrame, drawMatrix, loadAnims, reducedMotion, type Anim, type Phase } from '../scripts/glyph';
+  import { cycleFrame, drawMatrix, loadAnims, reducedMotion, restStart, type Anim, type Phase } from '../scripts/glyph';
+
+  const TIMERS = [10, 30, 60, 90]; // secondi di riposo; il conto va in tempo reale
 
   const FAVOURITES = [
     'bench press', 'cable fly', 'dumbbell curl', 'crunch machine', 'shoulder press', 'lateral raise',
@@ -162,7 +154,9 @@
     const canvas = root.querySelector('canvas')!;
     const ctx = canvas.getContext('2d')!;
     const chips = root.querySelector<HTMLElement>('[data-chips]')!;
+    const timerEl = root.querySelector<HTMLElement>('[data-timer]')!;
     const nowEl = root.querySelector<HTMLElement>('[data-now]')!;
+    let restMs = 30_000;
     let anims: Anim[] = [];
     let current: Anim | null = null;
     let t0 = performance.now();
@@ -173,7 +167,7 @@
 
     function paint(ms: number) {
       if (!current) return;
-      const { frame, phase } = cycleFrame(current, ms);
+      const { frame, phase } = cycleFrame(current, ms, restMs);
       drawMatrix(ctx, frame, 0, 0, canvas.width);
       if (nowEl.dataset.p !== phase) {
         nowEl.dataset.p = phase;
@@ -193,6 +187,28 @@
     function kick() {
       if (!raf && visible) raf = requestAnimationFrame(loop);
     }
+
+    function setTimer(sec: number) {
+      restMs = sec * 1000;
+      timerEl.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(Number(b.dataset.sec) === sec)));
+      if (current) {
+        // riparte da quando comincia il riposo, così si vede subito la sabbia
+        t0 = performance.now() - restStart(current);
+        lastKey = '';
+        nowEl.dataset.p = '';
+        paint(restStart(current));
+        kick();
+      }
+    }
+    TIMERS.forEach((sec) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.dataset.sec = String(sec);
+      b.textContent = `${sec} s`;
+      b.setAttribute('aria-pressed', String(sec * 1000 === restMs));
+      b.addEventListener('click', () => setTimer(sec));
+      timerEl.appendChild(b);
+    });
 
     function pick(a: Anim) {
       current = a;
