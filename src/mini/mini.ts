@@ -10,7 +10,7 @@
 // Easter egg: se lo scuoti forte mentre lo tieni parte MINI FIGHTER (./game.ts, caricato solo allora).
 
 import { render, W, H, SIT_ROW, SEATED, type Theme } from './sprite';
-import { SCENES, SceneApi, choose, isHome, pool, type Step } from './scenes';
+import { SCENES, SceneApi, choose, firstSceneDelay, isHome, pool, type Step } from './scenes';
 import type { Prop } from './props';
 
 type State =
@@ -117,7 +117,7 @@ export class Mini {
   step: Step | null = null;
   stepT = 0;
   /** niente scene prima di questo istante: in home sono rare, nelle pagine dedicate più frequenti */
-  sceneCool = performance.now() + (isHome() ? 45000 : 2500);
+  sceneCool = performance.now() + (isHome() ? 45000 : firstSceneDelay());
   /** pagina con scene dedicate (lavori, lab, chi sono, contatti…): lì le scene sono il suo lavoro */
   dedicated = !isHome() && pool().length > 0;
   /** scena chiesta dal terminale ("mini scene <nome>") */
@@ -500,7 +500,8 @@ export class Mini {
     this.step = null;
     s.gen.return();
     s.api.cleanup();
-    this.sceneCool = performance.now() + (this.dedicated ? rand(3, 7) : rand(90, 150)) * 1000;
+    const rest = SCENES[s.name]?.cooldown ?? [3, 7];
+    this.sceneCool = performance.now() + (this.dedicated ? rand(rest[0], rest[1]) : rand(90, 150)) * 1000;
     if (!abort) this.set('idle', rand(2, 4));
   }
 

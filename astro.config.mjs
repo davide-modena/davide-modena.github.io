@@ -11,6 +11,8 @@ export default defineConfig({
     routing: { prefixDefaultLocale: false },
   },
   markdown: {
+    // i blocchi ```mermaid non si colorano come codice: li disegna src/scripts/mermaid.ts
+    syntaxHighlight: { type: 'shiki', excludeLangs: ['mermaid'] },
     shikiConfig: {
       themes: { dark: 'vitesse-dark', light: 'vitesse-light' },
       defaultColor: 'dark',

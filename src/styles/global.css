@@ -574,6 +574,56 @@ kbd {
 .prose figure > * {
   width: 100%;
 }
+/* "Cosa sa fare": le funzioni come schede (le crea src/scripts/cards.ts) */
+.prose .cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 1.4em;
+}
+.prose .card {
+  padding: 18px 20px 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-2);
+}
+.prose .card h3 {
+  margin: 0 0 8px;
+  font-size: 17px;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+.prose .card p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+}
+@media (max-width: 620px) {
+  .prose .cards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* diagrammi mermaid: centrati, mai più larghi della colonna */
+.prose .mermaid-fig {
+  display: block;
+  margin: 2em auto;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-2);
+  overflow-x: auto;
+  font-family: var(--mono);
+  font-size: 13px;
+  text-align: center;
+}
+.prose .mermaid-fig svg {
+  max-width: 100%;
+  height: auto;
+}
+.prose .mermaid-fig svg * {
+  text-transform: none;
+}
 .prose figcaption {
   text-align: center;
 }

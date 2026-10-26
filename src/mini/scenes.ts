@@ -77,7 +77,8 @@ export class SceneApi {
 
 // --- le scene ---------------------------------------------------------------------------------
 
-type SceneDef = { weight: number; run: (a: SceneApi) => Scene };
+/** `cooldown`: pausa (in secondi, min-max) dopo la scena nelle pagine dedicate; per le scene che stancano */
+type SceneDef = { weight: number; cooldown?: [number, number]; run: (a: SceneApi) => Scene };
 
 export const SCENES: Record<string, SceneDef> = {
   // alla scrivania che programma
@@ -274,12 +275,14 @@ export const SCENES: Record<string, SceneDef> = {
   // Trenitardo e Bustardo: il mezzo passa, lui corre, lo perde
   train: {
     weight: 1,
+    cooldown: [90, 160],
     *run(a) {
       yield* chase(a, 'train', L('noooo!', 'noooo!'), 900);
     },
   },
   bus: {
     weight: 1,
+    cooldown: [90, 160],
     *run(a) {
       yield* chase(a, 'bus', L('aspettaaa!', 'waaait!'), 620);
     },
@@ -345,6 +348,12 @@ export function pool(): string[] {
   for (const [re, names] of POOLS) if (re.test(path)) return names;
   return isHome() ? Object.keys(SCENES).filter((k) => SCENES[k].weight > 0) : [];
 }
+
+/** pagine con una sola scena "che stanca" (treno, bus): la prima parte dopo un po', non subito */
+export const firstSceneDelay = () => {
+  const only = pool();
+  return only.length === 1 && SCENES[only[0]].cooldown ? 30000 : 2500;
+};
 
 export function choose(names = pool()): string | null {
   const total = names.reduce((n, k) => n + SCENES[k].weight, 0);

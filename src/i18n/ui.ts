@@ -74,6 +74,8 @@ export const ui = {
     'work.index.lead': 'Siti web progettati e sviluppati per clienti veri, dal primo schizzo alla messa online.',
 
     'lab.back': 'tutto il lab',
+    'detail.brief': 'in breve',
+    'detail.full': 'il dettaglio',
     'lab.index.title': 'Lab',
     'lab.index.lead':
       'Quello che costruisco quando nessuno me lo chiede: app per i mezzi pubblici, bot Telegram, estensioni, firmware per ESP32.',
@@ -236,6 +238,8 @@ export const ui = {
     'work.index.lead': 'Websites designed and built for real clients, from the first sketch to going live.',
 
     'lab.back': 'the whole lab',
+    'detail.brief': 'at a glance',
+    'detail.full': 'the details',
     'lab.index.title': 'Lab',
     'lab.index.lead':
       'What I build when nobody asks me to: public transport apps, Telegram bots, browser extensions, ESP32 firmware.',

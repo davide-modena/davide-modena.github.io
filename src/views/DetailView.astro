@@ -4,7 +4,9 @@ import Stage from '../components/Stage.astro';
 import DotCover from '../components/DotCover.astro';
 import AiNote from '../components/AiNote.astro';
 import GlyphStrips from '../components/GlyphStrips.astro';
+import TrainHero from '../components/TrainHero.astro';
 import { render } from 'astro:content';
+import { Image } from 'astro:assets';
 import { getLocalized } from '../lib/content';
 import { useTranslations, path, otherLang } from '../i18n/utils';
 import type { Lang } from '../i18n/ui';
@@ -92,6 +94,8 @@ const meta: { label: string; value: string; href?: string }[] =
             <div class="lab-visual lab-card">
               {d.visual === 'glyph-strips' ? (
                 <GlyphStrips />
+              ) : d.visual === 'train-hero' ? (
+                <TrainHero />
               ) : (
                 <DotCover seed={slug} kind={d.kind} glyph={d.glyph} cols={72} />
               )}
@@ -104,6 +108,31 @@ const meta: { label: string; value: string; href?: string }[] =
         <aside class="side mono">
           {d.ai && <AiNote lang={lang} />}
         </aside>
+        {
+          d.summary && (
+            <>
+              <section class="brief" aria-label={t('detail.brief')}>
+                <p class="brief-label mono">{t('detail.brief')}</p>
+                <p class="brief-text">{d.summary}</p>
+                {d.briefShots?.length > 0 && (
+                  <div class="brief-shots" style={`--n: ${d.briefShots.length}`}>
+                    {d.briefShots.map((s: { src: ImageMetadata; alt: string }) => (
+                      <Image src={s.src} alt={s.alt} width={520} format="webp" quality={85} loading="lazy" />
+                    ))}
+                  </div>
+                )}
+                {d.highlights?.length > 0 && (
+                  <ul class="brief-points mono">
+                    {d.highlights.map((h: string) => (
+                      <li>{h}</li>
+                    ))}
+                  </ul>
+                )}
+              </section>
+              <p class="full-label mono" aria-hidden="true">{t('detail.full')}</p>
+            </>
+          )
+        }
         <div class="prose">
           <Content />
         </div>
@@ -203,6 +232,72 @@ const meta: { label: string; value: string; href?: string }[] =
     width: min(100%, 700px);
     margin-inline: auto;
     padding: clamp(56px, 8vw, 120px) 0;
+  }
+  /* riquadro "in breve": un sunto, distinto dal testo lungo che segue */
+  .brief {
+    padding: 22px 24px 24px;
+    border: 1px solid var(--line-2);
+    border-left: 2px solid var(--accent);
+    border-radius: 4px 10px 10px 4px;
+    background: var(--bg-2);
+  }
+  .brief-label {
+    margin: 0 0 12px;
+    font-size: 11.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .brief-text {
+    margin: 0;
+    font-size: clamp(18px, 1.9vw, 21px);
+    line-height: 1.5;
+    letter-spacing: -0.01em;
+    color: var(--fg);
+  }
+  .brief-shots {
+    display: grid;
+    grid-template-columns: repeat(var(--n), minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 20px;
+  }
+  .brief-shots :global(img) {
+    display: block;
+    width: 100%;
+    height: auto;
+    border: 1px solid var(--line-2);
+    border-radius: 10px;
+  }
+  .brief-points {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 8px;
+    margin: 18px 0 0;
+    padding: 0;
+    list-style: none;
+    font-size: 12px;
+  }
+  .brief-points li {
+    padding: 4px 10px;
+    border: 1px solid var(--line-2);
+    border-radius: 99px;
+    color: var(--fg-2);
+  }
+  .full-label {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin: 44px 0 36px;
+    font-size: 11.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--fg-3);
+  }
+  .full-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--line);
   }
   .side:not(:empty) {
     margin-bottom: 32px;

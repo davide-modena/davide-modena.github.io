@@ -27,7 +27,7 @@ const works = defineCollection({
 
 const lab = defineCollection({
   loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/lab' }),
-  schema: z.object({
+  schema: ({ image }) => z.object({
     title: z.string(),
     tagline: z.string(),
     year: z.string(),
@@ -39,10 +39,16 @@ const lab = defineCollection({
     order: z.number().default(99),
     /** la nota AI del Lab ora è una frase unica nell'intro; qui resta per casi particolari */
     ai: z.boolean().default(false),
+    /** il riquadro "in breve" in cima alla pagina: 2-4 frasi che spiegano il progetto */
+    summary: z.string().optional(),
+    /** 3-4 punti chiave brevi, mostrati sotto il riassunto */
+    highlights: z.array(z.string()).default([]),
+    /** 1-3 immagini (di solito screenshot da telefono) mostrate nel riquadro "in breve" */
+    briefShots: z.array(z.object({ src: image(), alt: z.string() })).default([]),
     /** simbolo mostrato nella copertina generata */
     glyph: z.string().default('●'),
     /** 'dots' = copertina generata; 'glyph-strips' = le strisce animate della Glyph Matrix */
-    visual: z.enum(['dots', 'glyph-strips']).default('dots'),
+    visual: z.enum(['dots', 'glyph-strips', 'train-hero']).default('dots'),
   }),
 });
 

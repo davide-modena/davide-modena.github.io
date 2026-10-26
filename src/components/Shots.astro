@@ -1,0 +1,59 @@
+---
+// Uno o più screenshot da telefono, affiancati e centrati nella colonna del testo, ognuno con la sua didascalia.
+import { Image } from 'astro:assets';
+
+interface Item {
+  src: ImageMetadata;
+  alt: string;
+  caption?: string;
+}
+interface Props {
+  items: Item[];
+}
+const { items } = Astro.props;
+---
+
+<div class="shots" style={`--n: ${items.length}`}>
+  {
+    items.map((it) => (
+      <figure>
+        <Image src={it.src} alt={it.alt} width={520} format="webp" quality={85} loading="lazy" />
+        {it.caption && <figcaption class="mono">{it.caption}</figcaption>}
+      </figure>
+    ))
+  }
+</div>
+
+<style>
+  .shots {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 14px;
+    margin: 2em auto;
+  }
+  figure {
+    margin: 0;
+    /* uno da solo non diventa gigante; due o tre si dividono la colonna */
+    width: min(100%, calc((100% - 14px * (var(--n) - 1)) / var(--n)), 300px);
+  }
+  figure :global(img) {
+    display: block;
+    width: 100%;
+    height: auto;
+    border: 1px solid var(--line-2);
+    border-radius: 12px;
+  }
+  figcaption {
+    margin-top: 10px;
+    font-size: 11.5px;
+    line-height: 1.5;
+    color: var(--fg-3);
+    text-align: center;
+  }
+  @media (max-width: 520px) {
+    .shots {
+      gap: 8px;
+    }
+  }
+</style>

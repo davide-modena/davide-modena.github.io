@@ -1,0 +1,248 @@
+---
+// La hero dell'app Trenitardo ricostruita: il "tabellone" a puntini con montagne e treno che scorrono, la
+// fermata, il conto alla rovescia e il ritardo. Segue un viaggio finto Trento → Verona Porta Nuova che gira
+// in loop (src/scripts/trenSim.ts). Stile, font e animazioni sono quelli dell'app (app/src/index.css).
+import landscape from '../assets/projects/trenitardo/hero/landscape.webp';
+import train from '../assets/projects/trenitardo/hero/train.webp';
+import { DEST } from '../scripts/trenSim';
+---
+
+<div class="th" data-train-hero role="img" aria-label="Il tabellone di Trenitardo: un treno da Trento a Verona Porta Nuova in viaggio, con il conto alla rovescia e il ritardo">
+  <div class="box">
+    <div class="hero">
+      <img class="landscape" src={landscape.src} alt="" aria-hidden="true" width={landscape.width} height={landscape.height} data-landscape />
+      <img class="train-img" src={train.src} alt="" aria-hidden="true" width={train.width} height={train.height} data-train />
+      <div class="overlay">
+        <div class="stationblocks">
+          <div>
+            <div class="k" data-k>In transito · dopo</div>
+            <div class="station" data-station>Trento</div>
+          </div>
+        </div>
+        <div class="bottom">
+          <div class="etabox">
+            <div class="k">Arriva a {DEST.short} · bin. 1</div>
+            <div class="eta" data-eta>1h 0'</div>
+          </div>
+          <div class="updbox">
+            <div class="k">Ult. agg.</div>
+            <div class="upd" data-upd>16:40</div>
+          </div>
+          <div class="delaybox">
+            <div class="k">Ritardo</div>
+            <div class="d late" data-delay>+5'</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="cap mono">Ricostruzione in HTML della hero dell'app: un viaggio Trento → Verona simulato, un secondo = un minuto.</p>
+</div>
+
+<style is:global>
+  @font-face {
+    font-family: 'Ndot57';
+    src: url('../assets/projects/trenitardo/hero/Ndot57-Regular.otf');
+    font-display: swap;
+  }
+</style>
+
+<style>
+  .th {
+    --s: 1.6;
+    --red: #d71921;
+    --green: #28a745;
+    display: grid;
+    justify-items: center;
+    gap: 12px;
+    padding: clamp(20px, 4vw, 44px) 16px 14px;
+    background:
+      radial-gradient(60% 80% at 50% 45%, rgb(255 255 255 / 0.05), transparent 75%),
+      radial-gradient(rgb(255 255 255 / 0.07) 1px, transparent 1.2px) 0 0 / 14px 14px,
+      #080808;
+    font-family: 'Ndot57', 'Courier New', monospace;
+  }
+  @media (max-width: 760px) {
+    .th {
+      --s: 1.15;
+    }
+  }
+  @media (max-width: 440px) {
+    .th {
+      --s: 0.85;
+    }
+  }
+  .box {
+    width: calc(360px * var(--s));
+    height: calc(150px * var(--s));
+  }
+  /* la hero ha misure fisse come nell'app (360×150) e si ingrandisce con la scala */
+  .hero {
+    position: relative;
+    width: 360px;
+    height: 150px;
+    border-radius: 16px;
+    overflow: hidden;
+    background: radial-gradient(120% 140% at 50% -20%, #1c1c1c, #0d0d0d 70%);
+    border: 1px solid #333;
+    transform: scale(var(--s));
+    transform-origin: top left;
+    color: #fff;
+    --text: #fff;
+    --muted: #8f8f8f;
+  }
+  .landscape {
+    position: absolute;
+    bottom: 0;
+    left: -15px;
+    height: 120px;
+    width: auto;
+    max-width: none;
+    opacity: 0.3;
+    border: 0;
+    border-radius: 0;
+  }
+  .landscape.moving {
+    animation: landscape-run 2.4s linear infinite;
+  }
+  .train-img {
+    position: absolute;
+    bottom: 8px;
+    left: -1320px;
+    height: 75px;
+    width: auto;
+    max-width: none;
+    border: 0;
+    border-radius: 0;
+  }
+  .train-img.moving {
+    left: -945px;
+    animation: train-run 3.2s linear infinite;
+  }
+  @keyframes landscape-run {
+    to {
+      transform: translateX(-910px);
+    }
+  }
+  @keyframes train-run {
+    to {
+      transform: translateX(719px);
+    }
+  }
+  .overlay {
+    position: absolute;
+    inset: 0;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    z-index: 2;
+    background: linear-gradient(0deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 100%);
+  }
+  .k {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+    line-height: 1.3;
+  }
+  .station {
+    font-size: 24px;
+    line-height: 1.05;
+    text-transform: uppercase;
+    overflow-wrap: anywhere;
+  }
+  .bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 10px;
+  }
+  .etabox {
+    flex: 1;
+    min-width: 0;
+    text-align: left;
+  }
+  .etabox .k {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    letter-spacing: 2px;
+  }
+  .eta {
+    font-size: 30px;
+    line-height: 1.05;
+  }
+  .updbox {
+    text-align: center;
+  }
+  .updbox .k {
+    font-size: 9px;
+    letter-spacing: 2px;
+  }
+  .upd {
+    font-size: 15px;
+    color: var(--muted);
+  }
+  .delaybox {
+    text-align: right;
+  }
+  .d {
+    font-size: 22px;
+  }
+  .d.late {
+    color: var(--red);
+  }
+  .d.ontime {
+    color: var(--green);
+  }
+  .cap {
+    margin: 4px 0 0;
+    max-width: 60ch;
+    font-size: 11.5px;
+    line-height: 1.5;
+    color: #77777c;
+    text-align: center;
+    font-family: var(--mono);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .landscape.moving,
+    .train-img.moving {
+      animation: none;
+    }
+  }
+</style>
+
+<script>
+  import { state, STOPS, fmtEta } from '../scripts/trenSim';
+  import { reducedMotion } from '../scripts/glyph';
+
+  document.querySelectorAll<HTMLElement>('[data-train-hero]').forEach((root) => {
+    const q = <T extends HTMLElement>(s: string) => root.querySelector<T>(s)!;
+    const [land, train, k, station, eta, upd, delay] = [
+      q('[data-landscape]'), q('[data-train]'), q('[data-k]'), q('[data-station]'), q('[data-eta]'), q('[data-upd]'), q('[data-delay]'),
+    ];
+    let last = '';
+    let timer = 0;
+    function render() {
+      const s = state(performance.now());
+      const key = `${s.idx}|${s.moving}|${s.eta}|${s.delay}|${s.clock}`;
+      if (key === last) return;
+      last = key;
+      land.classList.toggle('moving', s.moving);
+      train.classList.toggle('moving', s.moving);
+      k.textContent = s.arrived ? 'Arrivato a' : s.moving ? 'In transito · dopo' : 'Fermo a';
+      station.textContent = STOPS[s.idx].short;
+      eta.textContent = fmtEta(s.eta);
+      upd.textContent = s.clock;
+      delay.textContent = s.delay > 0 ? `+${s.delay}'` : "0'";
+      delay.className = 'd ' + (s.delay > 0 ? 'late' : 'ontime');
+    }
+    render();
+    if (reducedMotion()) return;
+    new IntersectionObserver((e) => {
+      window.clearInterval(timer);
+      timer = e[0].isIntersecting ? window.setInterval(render, 250) : 0;
+    }).observe(root);
+  });
+</script>

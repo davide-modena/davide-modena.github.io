@@ -1,0 +1,110 @@
+---
+// Il Glyph Toy di Trenitardo sul Nothing Phone (3): minuti all'arrivo sopra, il treno che corre al centro
+// (fermo se è in stazione), la sigla della stazione sotto. Il disegno è lo stesso del codice dell'app
+// (TrainGlyphToy.kt: matrice 25×25, font 3×5, 27 fotogrammi del treno) e segue il viaggio finto Trento → Verona.
+import GlyphMockup from './GlyphMockup.astro';
+---
+
+<figure class="toy" data-train-toy>
+  <GlyphMockup zoomed />
+  <figcaption class="mono">
+    <p class="now" data-now aria-live="off">&nbsp;</p>
+    <p>Ricostruzione del Glyph Toy: i minuti all'arrivo, il treno e la stazione dove si trova.</p>
+  </figcaption>
+</figure>
+
+<style>
+  .toy {
+    display: grid;
+    justify-items: center;
+    gap: 14px;
+    margin: 0;
+    padding: clamp(24px, 4vw, 40px) 16px 18px;
+    border: 1px solid var(--line-2);
+    border-radius: 12px;
+    background:
+      radial-gradient(60% 70% at 50% 40%, var(--bg-3), transparent 80%),
+      var(--bg-2);
+  }
+  figcaption {
+    display: grid;
+    justify-items: center;
+    gap: 6px;
+    width: 100%;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--fg-3);
+    text-align: center;
+  }
+  figcaption p {
+    margin: 0;
+  }
+  .now {
+    min-height: 1.5em;
+    font-size: 12.5px;
+    font-variant-numeric: tabular-nums;
+    color: var(--fg-2);
+  }
+</style>
+
+<script>
+  import { state, sigla, STOPS } from '../scripts/trenSim';
+  import { TRAIN_MOVE, TRAIN_STOP, FONT } from '../scripts/trenGlyphData';
+  import { drawMatrix, reducedMotion } from '../scripts/glyph';
+
+  const SIZE = 25;
+  const ON = 255;
+  const ETA_ROW = 2;
+  const STAZ_ROW = 18;
+  const TRAIN_ROW = 9;
+  const FRAME_MS = 80;
+
+  function put(g: Uint8Array, x: number, y: number, v = ON) {
+    if (x >= 0 && x < SIZE && y >= 0 && y < SIZE) g[y * SIZE + x] = v;
+  }
+  function sprite(g: Uint8Array, rows: string[], x0: number, y0: number) {
+    rows.forEach((row, dy) => [...row].forEach((ch, dx) => ch === '#' && put(g, x0 + dx, y0 + dy)));
+  }
+  // testo centrato, glifi a larghezza variabile con 1 px di spazio
+  function text(g: Uint8Array, s: string, y0: number) {
+    const glyphs = [...s].map((c) => FONT[c]).filter(Boolean);
+    if (!glyphs.length) return;
+    let x = Math.floor((SIZE - (glyphs.reduce((n, gl) => n + gl[0].length, 0) + glyphs.length - 1)) / 2);
+    for (const gl of glyphs) {
+      sprite(g, gl, x, y0);
+      x += gl[0].length + 1;
+    }
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-train-toy]').forEach((root) => {
+    const canvas = root.querySelector('canvas')!;
+    const ctx = canvas.getContext('2d')!;
+    const now = root.querySelector<HTMLElement>('[data-now]')!;
+    let frameIdx = 0;
+    let timer = 0;
+    let lastLine = '';
+
+    function render() {
+      const s = state(performance.now());
+      const g = new Uint8Array(SIZE * SIZE);
+      text(g, `${s.eta}'`, ETA_ROW);
+      text(g, sigla(STOPS[s.idx].name), STAZ_ROW);
+      const spr = s.moving ? TRAIN_MOVE[frameIdx % TRAIN_MOVE.length] : TRAIN_STOP;
+      sprite(g, spr, Math.floor((SIZE - spr[0].length) / 2), TRAIN_ROW);
+      if (s.moving) frameIdx = (frameIdx + 1) % TRAIN_MOVE.length;
+      drawMatrix(ctx, g, 0, 0, canvas.width);
+      const line = `${s.arrived ? 'arrivato' : s.moving ? 'in viaggio' : 'fermo'} · ${sigla(STOPS[s.idx].name)} → VRNP · ${s.eta}'`;
+      if (line !== lastLine) {
+        lastLine = line;
+        now.textContent = line;
+      }
+    }
+
+    render();
+    if (reducedMotion()) return;
+    new IntersectionObserver((e) => {
+      window.clearInterval(timer);
+      timer = e[0].isIntersecting ? window.setInterval(render, FRAME_MS) : 0;
+    }).observe(root);
+  });
+</script>

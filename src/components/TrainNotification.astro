@@ -1,0 +1,182 @@
+---
+// La notifica live di Trenitardo (Android 16, "Live Update") ricostruita in HTML: una sola notifica che si
+// aggiorna durante il viaggio, con il chip in alto che alterna minuti/ritardo e ultima fermata, il titolo
+// "24' a Verona (+5') · partito da Trento", il testo con le fermate che mancano e la barra a tratte col pallino.
+// Segue lo stesso viaggio finto Trento → Verona del resto della pagina (src/scripts/trenSim.ts).
+import { TRAIN_NUMBER, STOPS, DEST } from '../scripts/trenSim';
+const legs = STOPS.length - 1;
+---
+
+<figure class="live" data-train-notification>
+  <div class="screen">
+    <div class="ui" aria-hidden="true">
+      <div class="chip mono">
+        <span class="mark">▚</span>
+        <span data-chip>60' (+5')</span>
+      </div>
+      <div class="card">
+        <div class="head">
+          <span class="app">Trenitardo</span>
+          <span class="sep">·</span>
+          <span class="time" data-time>16:40</span>
+        </div>
+        <div class="title" data-title>60' a {DEST.name} (+5') · fermo a Trento</div>
+        <div class="text" data-text>5 fermate · treno {TRAIN_NUMBER} → {DEST.name}</div>
+        <div class="bar">
+          <div class="segs">
+            {Array.from({ length: legs }, () => <i />)}
+          </div>
+          <b class="dot" data-dot></b>
+        </div>
+      </div>
+    </div>
+  </div>
+  <figcaption class="mono">Ricostruzione in HTML: una sola notifica che cambia mentre viaggi.</figcaption>
+</figure>
+
+<style>
+  .live {
+    margin: 0;
+  }
+  .screen {
+    max-width: 440px;
+    border: 1px solid var(--line-2);
+    border-radius: 14px;
+    background: #0b0b0c;
+    overflow: hidden;
+  }
+  .ui {
+    display: grid;
+    gap: 14px;
+    padding: 14px;
+    color: #ececec;
+    font-family: var(--sans);
+  }
+  .chip {
+    justify-self: end;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 108px;
+    justify-content: center;
+    padding: 5px 12px 5px 9px;
+    border-radius: 99px;
+    background: #1b1b1d;
+    font-size: 14px;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+  .mark {
+    color: #d71921;
+    font-size: 13px;
+  }
+  .card {
+    display: grid;
+    gap: 6px;
+    padding: 14px 16px 18px;
+    border-radius: 22px;
+    background: #1d1d20;
+  }
+  .head {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 6px;
+    font-size: 12.5px;
+    color: #a8a8ad;
+  }
+  .time {
+    font-variant-numeric: tabular-nums;
+  }
+  .title {
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 1.3;
+  }
+  .text {
+    font-size: 14px;
+    color: #cfcfd3;
+  }
+  .bar {
+    position: relative;
+    margin-top: 14px;
+  }
+  .segs {
+    display: flex;
+    gap: 4px;
+  }
+  .segs i {
+    flex: 1;
+    height: 5px;
+    border-radius: 99px;
+    background: #4a4a50;
+  }
+  .segs i.done {
+    background: #f2f2f2;
+  }
+  .dot {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 13px;
+    height: 13px;
+    margin: -6.5px 0 0 -6.5px;
+    border-radius: 50%;
+    background: #d71921;
+    box-shadow: 0 0 0 3px #1d1d20;
+    transition: left 0.3s linear;
+  }
+  figcaption {
+    margin-top: 10px;
+    max-width: 62ch;
+    font-size: 12px;
+    color: var(--fg-3);
+  }
+</style>
+
+<script>
+  import { state, sigla, STOPS, DEST, TRAIN_NUMBER, fmtEta } from '../scripts/trenSim';
+  import { reducedMotion } from '../scripts/glyph';
+
+  document.querySelectorAll<HTMLElement>('[data-train-notification]').forEach((root) => {
+    const q = <T extends HTMLElement>(s: string) => root.querySelector<T>(s)!;
+    const chip = q('[data-chip]');
+    const time = q('[data-time]');
+    const title = q('[data-title]');
+    const text = q('[data-text]');
+    const dot = q('[data-dot]');
+    const segs = [...root.querySelectorAll<HTMLElement>('.segs i')];
+    let timer = 0;
+
+    function render() {
+      const ms = performance.now();
+      const s = state(ms);
+      const stop = STOPS[s.idx];
+      const delay = s.delay > 0 ? `+${s.delay}'` : "0'";
+      const where = s.arrived ? '' : s.moving ? `partito da ${stop.name}` : `fermo a ${stop.name}`;
+      title.textContent = s.arrived
+        ? `Arrivato a ${DEST.name}`
+        : `${fmtEta(s.eta)} a ${DEST.name} (${delay}) · ${where}`;
+      const left = s.stopsLeft;
+      text.textContent = s.arrived
+        ? `Scendi qui · treno ${TRAIN_NUMBER}`
+        : `${left === 1 ? '1 fermata' : left + ' fermate'} · treno ${TRAIN_NUMBER} → ${DEST.name}`;
+      time.textContent = s.clock;
+      // il chip alterna ogni 3 secondi: minuti e ritardo ⇄ stato e stazione
+      const phase = Math.floor(ms / 3000) % 2;
+      const flag = s.moving ? 'D' : 'A';
+      chip.textContent = s.arrived ? `A: ${sigla(stop.name)}` : phase === 0 ? `${fmtEta(s.eta)} (${delay})` : `${flag}: ${sigla(stop.name)}`;
+      segs.forEach((seg, i) => {
+        const pct = i < s.idx ? 100 : i === s.idx && s.moving ? s.leg * 100 : 0;
+        seg.style.background = `linear-gradient(90deg, #f2f2f2 ${pct}%, #4a4a50 ${pct}%)`;
+      });
+      dot.style.left = `${(s.progress * 100).toFixed(2)}%`;
+    }
+
+    render();
+    if (reducedMotion()) return;
+    new IntersectionObserver((e) => {
+      window.clearInterval(timer);
+      timer = e[0].isIntersecting ? window.setInterval(render, 250) : 0;
+    }).observe(root);
+  });
+</script>
