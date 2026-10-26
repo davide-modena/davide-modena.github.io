@@ -17,6 +17,18 @@
       (ora JPEG a bassa risoluzione); app per l'orologio ancora senza ricostruzione. Altre idee proposte dalla
       sessione della repo: linea di stazioni con il filtro della posizione credibile on/off, selettore "Per quando?"
       con ruote.
+- [ ] **Trenitardo — ricostruzioni (pagina)**:
+      - quando cambio tema deve cambiare anche l'interfaccia ricostruita (notifica, widget, ecc.: oggi restano
+        sempre scure);
+      - il widget deve essere quadrato, non rettangolare;
+      - nel chip della notifica mettere il logo di Trenitardo, non quella scacchiera stirata (il carattere ▚);
+      - vedere come migliorare la hero, se serve.
+- [ ] **Hevy Companion — pagina**:
+      - aggiungere il riquadro "in breve" (riassunto + punti chiave);
+      - usare lo zoom da telefono del mockup (telefono grande, tagliato, sul pavimento) anche su PC.
+- [ ] **Lavori — aggiungere Yammi Ramen** (repo locale: `yammi-ramen`) e riordinare l'elenco dei lavori così:
+      1. Yammi Ramen, 2. Uva e dintorni, 3. Arcreate, 4. Trentino Ingegneria (campo `order` nelle pagine in
+      `src/content/works/`). Serve anche screenshot desktop e mobile per i mockup, come per gli altri lavori.
 - [ ] **Licenza font Ndot57**: la hero di Trenitardo usa il font Ndot57 (Nothing) copiato dalla repo; verificare
       che sia ridistribuibile sul sito pubblico, altrimenti sostituirlo con un font a puntini libero.
 - [ ] **Trenitardo — da confermare**: link del bot Telegram, repo pubblica o privata (ora senza `repo`),
