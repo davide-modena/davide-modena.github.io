@@ -211,7 +211,7 @@ const { video, poster, exercise = 'Iso-Lateral Chest Press (Machine)' } = Astro.
         rest.hidden = true;
         action.textContent = 'Complete set';
         const c = Math.floor(inSlot / 3000) % CHIPS.length;
-        chip.textContent = c === 0 ? `${setNo}/${SETS}` : CHIPS[c];
+        chip!.textContent = c === 0 ? `${setNo}/${SETS}` : CHIPS[c];
       } else {
         const left = REST_MS - (inSlot - WORK_MS);
         const next = setNo < SETS ? setNo + 1 : 1;
@@ -222,7 +222,7 @@ const { video, poster, exercise = 'Iso-Lateral Chest Press (Machine)' } = Astro.
         rest.hidden = false;
         fill.style.transform = `scaleX(${(left / REST_MS).toFixed(3)})`;
         action.textContent = 'Skip rest';
-        chip.textContent = `0:${String(Math.ceil(left / 1000)).padStart(2, '0')}`;
+        chip!.textContent = `0:${String(Math.ceil(left / 1000)).padStart(2, '0')}`;
       }
     }
 

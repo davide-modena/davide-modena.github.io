@@ -76,6 +76,12 @@
   @media (max-width: 700px) {
     .strips {
       aspect-ratio: 4 / 3;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    /* su telefono niente bottoni: si tocca la striscia per girare i Glyph */
+    .bar {
+      display: none;
     }
   }
 </style>
@@ -208,6 +214,11 @@
       schedule();
     }
     btnStraight.addEventListener('click', () => setStraight(!straightTarget));
+    // un tocco su tutta l'area gira/raddrizza i Glyph (come premere R)
+    root.addEventListener('click', (e) => {
+      if ((e.target as HTMLElement).closest('.bar')) return;
+      setStraight(!straightTarget);
+    });
     btnPause.addEventListener('click', () => {
       paused = !paused;
       btnPause.textContent = paused ? 'riproduci' : 'pausa';
