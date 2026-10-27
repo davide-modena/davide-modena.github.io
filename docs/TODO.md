@@ -3,10 +3,6 @@
 ## Da fare
 
 - [ ] **Hevy Companion — mockup**: sostituire la foto del telefono con una che scatto io (mockup della Glyph).
-- [ ] **Hevy Companion — simulazione**: migliorare la simulazione dell'allenamento mettendone uno già fatto
-      e in movimento, senza i 300 tasti da provare (al massimo 2-3 controlli).
-- [ ] **Terminale**: trovare una scorciatoia migliore del backtick (`` ` ``) per aprirlo, che possano usare
-      tutti (la tastiera italiana non ha il backtick a portata di mano).
 - [ ] **Form contatti**: è nascosto (`FORM_ENABLED = false` in `src/views/ContactView.astro`). Da ripristinare
       con Netlify Forms o Web3Forms/Formspree.
 - [ ] **Pagine dei progetti Lab**: riscriverle col nuovo prompt (`docs/project-brief-prompt.md`), una repo alla
@@ -17,18 +13,21 @@
       (ora JPEG a bassa risoluzione); app per l'orologio ancora senza ricostruzione. Altre idee proposte dalla
       sessione della repo: linea di stazioni con il filtro della posizione credibile on/off, selettore "Per quando?"
       con ruote.
-- [ ] **Trenitardo — ricostruzioni (pagina)**:
-      - quando cambio tema deve cambiare anche l'interfaccia ricostruita (notifica, widget, ecc.: oggi restano
-        sempre scure);
-      - il widget deve essere quadrato, non rettangolare;
-      - nel chip della notifica mettere il logo di Trenitardo, non quella scacchiera stirata (il carattere ▚);
-      - vedere come migliorare la hero, se serve.
+- [ ] **Trenitardo — hero**: vedere come migliorarla, se serve (la lasciamo uguale all'app, scura anche col tema chiaro).
 - [ ] **Hevy Companion — pagina**:
-      - aggiungere il riquadro "in breve" (riassunto + punti chiave);
-      - usare lo zoom da telefono del mockup (telefono grande, tagliato, sul pavimento) anche su PC.
-- [ ] **Lavori — aggiungere Yammi Ramen** (repo locale: `yammi-ramen`) e riordinare l'elenco dei lavori così:
-      1. Yammi Ramen, 2. Uva e dintorni, 3. Arcreate, 4. Trentino Ingegneria (campo `order` nelle pagine in
-      `src/content/works/`). Serve anche screenshot desktop e mobile per i mockup, come per gli altri lavori.
+      - aggiungere il riquadro "in breve" (riassunto + punti chiave).
+- [ ] **Uva e Dintorni — pagina del lavoro**: spiegare il design del sito, ispirato al nuovo volantino di Aurora
+      Mattei; parlare della funzione dei giorni (si vedono gli eventi live e le corti aperte); mostrare anche il
+      totem, magari sia come video sia come iframe interattivo (o simile).
+- [ ] **Progetti Lab da GitHub (pagine da scrivere col prompt)**: wear remote (con monitoring), dsupad, buonarroti
+      home (da valutare), no more google pls, feed my brain, graph tool, pktmd, choppa, mentimeter-lite,
+      px-wallpapers (da valutare), next-question, waypoints.
+- [ ] **Età**: farla aggiornare in automatico con un calcolo (anno corrente − anno di nascita) invece del valore
+      fisso; passando il mouse su "21" compare il codice del calcolo in inglese (tipo `currentYear - birthYear`).
+- [ ] **Pagina sul lavoro alle ITT**: scuola zoomata in stile Google Earth, cosa faccio, competenze, ecc. Dove
+      metterla (sezione in Chi sono oppure pagina nascosta raggiungibile solo da link) lo decidiamo quando ci
+      arriviamo.
+- [ ] **Home**: togliere "scritti a mano" dal testo che si scrive da solo nell'hero (fa ridere).
 - [ ] **Licenza font Ndot57**: la hero di Trenitardo usa il font Ndot57 (Nothing) copiato dalla repo; verificare
       che sia ridistribuibile sul sito pubblico, altrimenti sostituirlo con un font a puntini libero.
 - [ ] **Trenitardo — da confermare**: link del bot Telegram, repo pubblica o privata (ora senza `repo`),
@@ -49,6 +48,15 @@
 
 ## Fatto di recente
 
+- Ricostruzioni HTML (notifiche di Hevy e Trenitardo, widget) che seguono il tema chiaro/scuro; la hero resta scura.
+- Widget di Trenitardo quadrato (2×2, nomi lunghi in sigla).
+- Hevy: allenamento già pronto (4 esercizi di fila, riposo di 10 s) con soli 3 bottoni (precedente, pausa, successivo).
+- Simbolo/logo su ogni card del Lab, anche sulla hero di Trenitardo.
+- Terminale: si apre con `:` (oltre al backtick), su qualsiasi tastiera.
+- Visualizzatore immagini: un clic su screenshot e immagini degli articoli le apre grandi, con frecce ed Esc.
+- Card del Lab: copertina con la hero del progetto (strisce Glyph per Hevy, tabellone per Trenitardo) e logo come
+  icona dove c'è; chip delle notifiche con il logo di Hevy e di Trenitardo; mockup Hevy ravvicinato anche su PC.
+- Lavori: aggiunto Yammi Ramen e riordinati (Yammi Ramen, Uva e dintorni, Arcreate, Trentino Ingegneria).
 - Blog con articoli in Markdown (`npm run new "titolo"`), modello in `src/content/blog/_template.md`.
 - Menu mobile classico.
 - Mini-me: la scena del treno e del bus ora è rara (la prima dopo ~30 s, poi pause di 90-160 s).

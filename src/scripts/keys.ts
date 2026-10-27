@@ -48,7 +48,8 @@ document.addEventListener('keydown', (e) => {
     dispatchEvent(new Event('palette:toggle'));
     return;
   }
-  if (e.key === '`' || e.code === 'Backquote') {
+  // il terminale si apre con ":" (come la riga di comando di vim, su qualsiasi tastiera) o col backtick
+  if (e.key === ':' || e.key === '`' || e.code === 'Backquote') {
     if ((e.target as HTMLElement).closest?.('.terminal')) return;
     if (typing(e)) return;
     e.preventDefault();

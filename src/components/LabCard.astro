@@ -1,5 +1,7 @@
 ---
 import DotCover from './DotCover.astro';
+import GlyphStrips from './GlyphStrips.astro';
+import TrainHero from './TrainHero.astro';
 import type { Localized } from '../lib/content';
 
 interface Props {
@@ -12,7 +14,21 @@ const d = entry.data;
 ---
 
 <a href={href} class="lab-card" data-nav-item data-kind={d.kind} data-reveal style={`--d:${(index % 3) * 0.08}s`}>
-  <DotCover seed={entry.slug} kind={d.kind} glyph={d.glyph} />
+  {
+    d.visual === 'glyph-strips' ? (
+      <div class="cover-box">
+        <GlyphStrips card />
+        {d.logo && <img class="logo" src={d.logo.src} alt="" width="44" height="44" />}
+      </div>
+    ) : d.visual === 'train-hero' ? (
+      <div class="cover-box">
+        <TrainHero bare />
+        {d.logo && <img class="logo top" src={d.logo.src} alt="" width="34" height="34" />}
+      </div>
+    ) : (
+      <DotCover seed={entry.slug} kind={d.kind} glyph={d.glyph} logo={d.logo?.src} />
+    )
+  }
   <div class="body">
     <div class="top mono">
       <span>{d.kind}</span>
@@ -44,6 +60,31 @@ const d = entry.data;
   .lab-card:hover {
     border-color: var(--fg-3);
     background: var(--bg-2);
+  }
+  /* copertina con la hero del progetto (strisce Glyph, tabellone del treno) */
+  .cover-box {
+    position: relative;
+    overflow: hidden;
+    border-bottom: 1px solid var(--line);
+  }
+  .logo {
+    position: absolute;
+    left: 14px;
+    bottom: 12px;
+    width: 44px;
+    height: 44px;
+    border-radius: 11px;
+    box-shadow: 0 0 0 1px rgb(255 255 255 / 0.18), 0 6px 18px rgb(0 0 0 / 0.5);
+  }
+  /* sulla hero del treno il simbolo va in alto a destra, dove il tabellone è vuoto */
+  .logo.top {
+    left: auto;
+    bottom: auto;
+    top: 12px;
+    right: 12px;
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
   }
   .body {
     display: flex;

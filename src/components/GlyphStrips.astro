@@ -1,14 +1,23 @@
 ---
 // Strisce diagonali di Glyph Matrix, ognuna con lo stickman del suo esercizio, che scorrono da sole.
 // Resta sempre scuro (è uno schermo); R raddrizza i singoli Glyph senza cambiare lo scorrimento.
+// `card`: versione per la copertina delle card del Lab, senza bottoni né clic (la card è un link).
+interface Props {
+  card?: boolean;
+}
+const { card = false } = Astro.props;
 ---
 
-<div class="strips" data-glyph-strips>
+<div class="strips" data-glyph-strips data-card={card ? '' : undefined}>
   <canvas role="img" aria-label="Strisce diagonali di Glyph Matrix con gli stickman degli esercizi in movimento"></canvas>
-  <div class="bar mono">
-    <button type="button" data-act="straight" aria-pressed="false" title="R"><kbd>R</kbd> glyph dritti</button>
-    <button type="button" data-act="pause" aria-pressed="false">pausa</button>
-  </div>
+  {
+    !card && (
+      <div class="bar mono">
+        <button type="button" data-act="straight" aria-pressed="false" title="R"><kbd>R</kbd> glyph dritti</button>
+        <button type="button" data-act="pause" aria-pressed="false">pausa</button>
+      </div>
+    )
+  }
 </div>
 
 <style>
@@ -73,6 +82,10 @@
     border: 1px solid rgb(255 255 255 / 0.25);
     border-radius: 4px;
   }
+  .strips[data-card] {
+    aspect-ratio: 16 / 9;
+    border-bottom: 1px solid var(--line);
+  }
   @media (max-width: 700px) {
     .strips {
       aspect-ratio: 4 / 3;
@@ -96,8 +109,10 @@
   document.querySelectorAll<HTMLElement>('[data-glyph-strips]').forEach((root) => {
     const canvas = root.querySelector('canvas')!;
     const ctx = canvas.getContext('2d')!;
-    const btnStraight = root.querySelector<HTMLButtonElement>('[data-act="straight"]')!;
-    const btnPause = root.querySelector<HTMLButtonElement>('[data-act="pause"]')!;
+    const isCard = root.hasAttribute('data-card');
+    // nella copertina delle card non ci sono bottoni: due finti evitano di riempire il codice di controlli
+    const btnStraight = root.querySelector<HTMLButtonElement>('[data-act="straight"]') ?? document.createElement('button');
+    const btnPause = root.querySelector<HTMLButtonElement>('[data-act="pause"]') ?? document.createElement('button');
     const mono = getComputedStyle(root).getPropertyValue('--mono').trim() || 'ui-monospace, monospace';
 
     let anims: Anim[] = [];
@@ -216,7 +231,7 @@
     btnStraight.addEventListener('click', () => setStraight(!straightTarget));
     // un tocco su tutta l'area gira/raddrizza i Glyph (come premere R)
     root.addEventListener('click', (e) => {
-      if ((e.target as HTMLElement).closest('.bar')) return;
+      if (isCard || (e.target as HTMLElement).closest('.bar')) return;
       setStraight(!straightTarget);
     });
     btnPause.addEventListener('click', () => {
@@ -227,7 +242,7 @@
       schedule();
     });
     window.addEventListener('keydown', (e) => {
-      if (e.key.toLowerCase() !== 'r' || e.metaKey || e.ctrlKey || e.altKey || !visible) return;
+      if (isCard || e.key.toLowerCase() !== 'r' || e.metaKey || e.ctrlKey || e.altKey || !visible) return;
       const t = e.target as HTMLElement | null;
       if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
       setStraight(!straightTarget);

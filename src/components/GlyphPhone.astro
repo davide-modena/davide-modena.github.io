@@ -1,22 +1,20 @@
 ---
-// Il Nothing Phone (3) su un pavimento da palestra (bianco col tema chiaro, nero col tema scuro); la Glyph in
-// alto a destra gira i fotogrammi veri dell'app. Il <canvas> sta sopra il cerchio del vetro: posizione e
-// inclinazione (--tilt) sono misurate sul ritaglio 700×467 (x 280, y 202) dei mockup 1264×843.
+// Il Nothing Phone (3) di Hevy Companion con la Glyph accesa: un allenamento già pronto (quattro esercizi di fila,
+// ognuno con il set, le ripetizioni dello stickman e il riposo con la sabbia) che gira da solo. Tre soli bottoni:
+// esercizio precedente, pausa, esercizio successivo. I fotogrammi sono quelli veri dell'app.
 import GlyphMockup from './GlyphMockup.astro';
 ---
 
 <figure class="phone-fig" data-glyph-phone>
-  <GlyphMockup />
+  <GlyphMockup zoomed />
   <figcaption>
-    <div class="row">
-      <span class="lbl mono">esercizio</span>
-      <div class="chips mono" role="group" aria-label="Esercizio" data-chips></div>
-    </div>
-    <div class="row">
-      <span class="lbl mono">riposo</span>
-      <div class="chips mono" role="group" aria-label="Durata del riposo" data-timer></div>
-    </div>
     <p class="now mono" data-now aria-live="off">&nbsp;</p>
+    <div class="ctl mono" role="group" aria-label="Allenamento">
+      <button type="button" data-prev aria-label="Esercizio precedente">‹ prec.</button>
+      <button type="button" data-pause aria-pressed="false">pausa</button>
+      <button type="button" data-next aria-label="Esercizio successivo">succ. ›</button>
+    </div>
+    <p class="count mono" data-count>1 / 4</p>
   </figcaption>
 </figure>
 
@@ -24,9 +22,9 @@ import GlyphMockup from './GlyphMockup.astro';
   .phone-fig {
     display: grid;
     justify-items: center;
-    gap: 18px;
+    gap: 16px;
     margin: 0;
-    padding: clamp(24px, 4vw, 48px) 16px;
+    padding: clamp(24px, 4vw, 48px) 16px 22px;
     border: 1px solid var(--line-2);
     border-radius: 12px;
     background:
@@ -36,32 +34,16 @@ import GlyphMockup from './GlyphMockup.astro';
   figcaption {
     display: grid;
     justify-items: center;
-    gap: 10px;
+    gap: 12px;
     width: 100%;
   }
-  .row {
+  .ctl {
     display: flex;
-    align-items: baseline;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 8px 10px;
+    gap: 8px;
   }
-  .lbl {
-    min-width: 6.5ch;
-    font-size: 11px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--fg-3);
-  }
-  .chips {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 6px;
-    max-width: 62ch;
-  }
-  .chips :global(button) {
-    padding: 5px 10px;
+  .ctl button {
+    min-width: 84px;
+    padding: 6px 12px;
     border: 1px solid var(--line-2);
     border-radius: 99px;
     background: transparent;
@@ -73,41 +55,45 @@ import GlyphMockup from './GlyphMockup.astro';
       border-color 0.2s,
       background 0.2s;
   }
-  .chips :global(button:hover) {
+  .ctl button:hover {
     color: var(--fg);
     border-color: var(--fg-3);
   }
-  .chips :global(button[aria-pressed='true']) {
+  .ctl button[aria-pressed='true'] {
     background: var(--fg);
     border-color: var(--fg);
     color: var(--bg);
   }
-  .chips :global(button:focus-visible) {
+  .ctl button:focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: 2px;
   }
-  .now {
+  .now,
+  .count {
     margin: 0;
-    min-height: 1.5em;
     font-size: 12.5px;
     color: var(--fg-3);
     font-variant-numeric: tabular-nums;
   }
+  .now {
+    min-height: 1.5em;
+    color: var(--fg-2);
+    text-align: center;
+  }
+  .count {
+    font-size: 11.5px;
+  }
 </style>
 
 <script>
-  import { cycleFrame, drawMatrix, loadAnims, reducedMotion, restStart, type Anim, type Phase } from '../scripts/glyph';
+  import { cycleFrame, cycleLength, drawMatrix, loadAnims, reducedMotion, type Anim, type Phase } from '../scripts/glyph';
 
-  const TIMERS = [10, 30, 60, 90]; // secondi di riposo; il conto va in tempo reale
-
-  const FAVOURITES = [
-    'bench press', 'cable fly', 'dumbbell curl', 'crunch machine', 'shoulder press', 'lateral raise',
-    'triceps pushdown', 'skullcrusher', 'leg press', 'lat pulldown', 'iso-lateral row', 'deadlift', 'squat',
-  ];
+  const WORKOUT = ['bench press', 'cable fly', 'squat', 'lat pulldown'];
+  const REST_MS = 10_000; // riposo corto, così in pochi secondi si vede tutto
   const PHASE_TEXT: Record<Phase, string> = {
     set: 'set e peso',
     motion: 'lo stickman fa la ripetizione',
-    rest: 'riposo: la sabbia sale, i secondi a centro',
+    rest: 'riposo: la sabbia sale, i secondi al centro',
     next: 'riposo: i dati del prossimo set sulla sabbia',
     alert: 'fine del riposo',
   };
@@ -115,97 +101,73 @@ import GlyphMockup from './GlyphMockup.astro';
   document.querySelectorAll<HTMLElement>('[data-glyph-phone]').forEach((root) => {
     const canvas = root.querySelector('canvas')!;
     const ctx = canvas.getContext('2d')!;
-    const chips = root.querySelector<HTMLElement>('[data-chips]')!;
-    const timerEl = root.querySelector<HTMLElement>('[data-timer]')!;
-    const nowEl = root.querySelector<HTMLElement>('[data-now]')!;
-    let restMs = 30_000;
-    let anims: Anim[] = [];
-    let current: Anim | null = null;
-    let t0 = performance.now();
-    let visible = false;
-    let raf = 0;
-    let lastKey = '';
+    const now = root.querySelector<HTMLElement>('[data-now]')!;
+    const count = root.querySelector<HTMLElement>('[data-count]')!;
+    const btnPrev = root.querySelector<HTMLButtonElement>('[data-prev]')!;
+    const btnNext = root.querySelector<HTMLButtonElement>('[data-next]')!;
+    const btnPause = root.querySelector<HTMLButtonElement>('[data-pause]')!;
     const still = reducedMotion();
 
-    function paint(ms: number) {
-      if (!current) return;
-      const { frame, phase } = cycleFrame(current, ms, restMs);
+    let list: Anim[] = [];
+    let i = 0;
+    let elapsed = 0;
+    let last: number | null = null;
+    let paused = still;
+    let visible = false;
+    let raf = 0;
+
+    function paint() {
+      const a = list[i];
+      if (!a) return;
+      const { frame, phase } = cycleFrame(a, elapsed, REST_MS);
       drawMatrix(ctx, frame, 0, 0, canvas.width);
-      if (nowEl.dataset.p !== phase) {
-        nowEl.dataset.p = phase;
-        nowEl.textContent = `${current.label} · ${PHASE_TEXT[phase]}`;
-      }
+      const line = `${a.label} · ${PHASE_TEXT[phase]}`;
+      if (now.textContent !== line) now.textContent = line;
     }
-    function loop(now: number) {
+    function go(n: number) {
+      i = (n + list.length) % list.length;
+      elapsed = 0;
+      last = null;
+      count.textContent = `${i + 1} / ${list.length}`;
+      paint();
+      kick();
+    }
+    function loop(t: number) {
       raf = 0;
-      const ms = now - t0;
-      const key = String(Math.floor(ms / 50));
-      if (key !== lastKey) {
-        lastKey = key;
-        paint(ms);
-      }
-      if (visible && !still) raf = requestAnimationFrame(loop);
+      if (last !== null && !paused) elapsed += t - last;
+      last = t;
+      if (list[i] && elapsed >= cycleLength(list[i], REST_MS)) return go(i + 1); // passa all'esercizio dopo
+      paint();
+      if (visible && !paused) raf = requestAnimationFrame(loop);
     }
     function kick() {
-      if (!raf && visible) raf = requestAnimationFrame(loop);
+      if (!raf && visible && !paused) raf = requestAnimationFrame(loop);
     }
-
-    function setTimer(sec: number) {
-      restMs = sec * 1000;
-      timerEl.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(Number(b.dataset.sec) === sec)));
-      if (current) {
-        // riparte da quando comincia il riposo, così si vede subito la sabbia
-        t0 = performance.now() - restStart(current);
-        lastKey = '';
-        nowEl.dataset.p = '';
-        paint(restStart(current));
-        kick();
-      }
-    }
-    TIMERS.forEach((sec) => {
-      const b = document.createElement('button');
-      b.type = 'button';
-      b.dataset.sec = String(sec);
-      b.textContent = `${sec} s`;
-      b.setAttribute('aria-pressed', String(sec * 1000 === restMs));
-      b.addEventListener('click', () => setTimer(sec));
-      timerEl.appendChild(b);
-    });
-
-    function pick(a: Anim) {
-      current = a;
-      t0 = performance.now();
-      lastKey = '';
-      nowEl.dataset.p = '';
-      chips.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.id === a.id)));
-      paint(0);
+    function setPaused(p: boolean) {
+      paused = p;
+      last = null;
+      btnPause.textContent = p ? 'riproduci' : 'pausa';
+      btnPause.setAttribute('aria-pressed', String(p));
       kick();
     }
 
+    btnPrev.addEventListener('click', () => go(i - 1));
+    btnNext.addEventListener('click', () => go(i + 1));
+    btnPause.addEventListener('click', () => setPaused(!paused));
+    if (still) setPaused(true);
+
     new IntersectionObserver((e) => {
       visible = e[0].isIntersecting;
-      if (visible) {
-        loadAnims().then((a) => {
-          if (!anims.length) {
-            anims = [...a].sort((x, y) => {
-              const ix = FAVOURITES.indexOf(x.id);
-              const iy = FAVOURITES.indexOf(y.id);
-              return (ix < 0 ? 99 : ix) - (iy < 0 ? 99 : iy);
-            });
-            anims.forEach((x) => {
-              const b = document.createElement('button');
-              b.type = 'button';
-              b.dataset.id = x.id;
-              b.textContent = x.label;
-              b.setAttribute('aria-pressed', 'false');
-              b.addEventListener('click', () => pick(x));
-              chips.appendChild(b);
-            });
-            pick(anims[0]);
-          }
-          kick();
-        });
-      }
+      if (!visible) return;
+      loadAnims().then((all) => {
+        if (!list.length) {
+          list = WORKOUT.map((id) => all.find((a) => a.id === id)).filter((a): a is Anim => !!a);
+          if (!list.length) return;
+          go(0);
+        }
+        last = null;
+        kick();
+      });
     }).observe(root);
   });
 </script>

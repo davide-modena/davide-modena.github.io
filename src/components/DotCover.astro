@@ -5,10 +5,12 @@ interface Props {
   seed: string;
   kind: 'web' | 'app' | 'bot' | 'hardware' | 'tool';
   glyph: string;
+  /** logo del progetto: al posto del simbolo */
+  logo?: string;
   /** colonne della griglia: di più per le copertine grandi */
   cols?: number;
 }
-const { seed, kind, glyph, cols = 32 } = Astro.props;
+const { seed, kind, glyph, logo, cols = 32 } = Astro.props;
 
 function hash(s: string) {
   let h = 2166136261;
@@ -56,7 +58,7 @@ for (let j = 0; j < ROWS; j++) {
   <svg viewBox={`0 0 ${COLS * 10} ${ROWS * 10}`} preserveAspectRatio="xMidYMid slice">
     {dots.map((d) => <circle cx={d.x} cy={d.y} r={0.6 + d.s * 2.6} style={`--o:${(0.12 + d.s * 0.88).toFixed(2)}`} />)}
   </svg>
-  <span class="glyph">{glyph}</span>
+  {logo ? <img class="glyph logo" src={logo} alt="" width="48" height="48" /> : <span class="glyph">{glyph}</span>}
 </div>
 
 <style>
@@ -87,6 +89,13 @@ for (let j = 0; j < ROWS; j++) {
     transition:
       color 0.4s,
       transform 0.6s var(--ease);
+  }
+  .logo {
+    width: 44px;
+    height: 44px;
+    border-radius: 11px;
+    object-fit: cover;
+    box-shadow: 0 0 0 1px var(--line-2);
   }
   :global(.lab-card:hover) circle,
   :global(.lab-card.kb-active) circle {

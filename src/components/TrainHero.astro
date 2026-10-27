@@ -5,9 +5,15 @@
 import landscape from '../assets/projects/trenitardo/hero/landscape.webp';
 import train from '../assets/projects/trenitardo/hero/train.webp';
 import { DEST } from '../scripts/trenSim';
+
+interface Props {
+  /** versione per la copertina delle card: senza didascalia né sfondo, si adatta alla larghezza */
+  bare?: boolean;
+}
+const { bare = false } = Astro.props;
 ---
 
-<div class="th" data-train-hero role="img" aria-label="Il tabellone di Trenitardo: un treno da Trento a Verona Porta Nuova in viaggio, con il conto alla rovescia e il ritardo">
+<div class:list={['th', { bare }]} data-train-hero role="img" aria-label="Il tabellone di Trenitardo: un treno da Trento a Verona Porta Nuova in viaggio, con il conto alla rovescia e il ritardo">
   <div class="box">
     <div class="hero">
       <img class="landscape" src={landscape.src} alt="" aria-hidden="true" width={landscape.width} height={landscape.height} data-landscape />
@@ -36,7 +42,7 @@ import { DEST } from '../scripts/trenSim';
       </div>
     </div>
   </div>
-  <p class="cap mono">Ricostruzione in HTML della hero dell'app: un viaggio Trento → Verona simulato, un secondo = un minuto.</p>
+  {!bare && <p class="cap mono">Ricostruzione in HTML della hero dell'app: un viaggio Trento → Verona simulato, un secondo = un minuto.</p>}
 </div>
 
 <style is:global>
@@ -71,6 +77,17 @@ import { DEST } from '../scripts/trenSim';
     .th {
       --s: 0.85;
     }
+  }
+  /* copertina delle card: la scala la calcola lo script in base alla larghezza */
+  .th.bare {
+    --s: 0.95;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    aspect-ratio: 16 / 9;
+    background:
+      radial-gradient(rgb(255 255 255 / 0.07) 1px, transparent 1.2px) 0 0 / 14px 14px,
+      #080808;
   }
   .box {
     width: calc(360px * var(--s));
@@ -237,6 +254,11 @@ import { DEST } from '../scripts/trenSim';
       upd.textContent = s.clock;
       delay.textContent = s.delay > 0 ? `+${s.delay}'` : "0'";
       delay.className = 'd ' + (s.delay > 0 ? 'late' : 'ontime');
+    }
+    if (root.classList.contains('bare')) {
+      const fit = () => root.style.setProperty('--s', String(Math.min(2, root.clientWidth / 360 - 0.03)));
+      new ResizeObserver(fit).observe(root);
+      fit();
     }
     render();
     if (reducedMotion()) return;

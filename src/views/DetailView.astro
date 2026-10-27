@@ -6,7 +6,7 @@ import AiNote from '../components/AiNote.astro';
 import GlyphStrips from '../components/GlyphStrips.astro';
 import TrainHero from '../components/TrainHero.astro';
 import { render } from 'astro:content';
-import { Image } from 'astro:assets';
+import { Image, getImage } from 'astro:assets';
 import { getLocalized } from '../lib/content';
 import { useTranslations, path, otherLang } from '../i18n/utils';
 import type { Lang } from '../i18n/ui';
@@ -25,6 +25,9 @@ const entry = all[index];
 const next = all[(index + 1) % all.length];
 const { Content } = await render(entry);
 const d = entry.data as Record<string, any>;
+const briefFull = await Promise.all(
+  (d.briefShots ?? []).map((s: { src: ImageMetadata }) => getImage({ src: s.src, width: Math.min(s.src.width, 1400), format: 'webp', quality: 88 })),
+);
 const sectionName = kind === 'works' ? t('section.work') : t('section.lab');
 
 const meta: { label: string; value: string; href?: string }[] =
@@ -97,7 +100,7 @@ const meta: { label: string; value: string; href?: string }[] =
               ) : d.visual === 'train-hero' ? (
                 <TrainHero />
               ) : (
-                <DotCover seed={slug} kind={d.kind} glyph={d.glyph} cols={72} />
+                <DotCover seed={slug} kind={d.kind} glyph={d.glyph} logo={d.logo?.src} cols={72} />
               )}
             </div>
           )
@@ -116,8 +119,8 @@ const meta: { label: string; value: string; href?: string }[] =
                 <p class="brief-text">{d.summary}</p>
                 {d.briefShots?.length > 0 && (
                   <div class="brief-shots" style={`--n: ${d.briefShots.length}`}>
-                    {d.briefShots.map((s: { src: ImageMetadata; alt: string }) => (
-                      <Image src={s.src} alt={s.alt} width={520} format="webp" quality={85} loading="lazy" />
+                    {d.briefShots.map((s: { src: ImageMetadata; alt: string }, i: number) => (
+                      <Image src={s.src} alt={s.alt} width={520} format="webp" quality={85} loading="lazy" data-full={briefFull[i].src} />
                     ))}
                   </div>
                 )}

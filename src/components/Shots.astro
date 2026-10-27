@@ -1,6 +1,6 @@
 ---
 // Uno o più screenshot da telefono, affiancati e centrati nella colonna del testo, ognuno con la sua didascalia.
-import { Image } from 'astro:assets';
+import { Image, getImage } from 'astro:assets';
 
 interface Item {
   src: ImageMetadata;
@@ -11,13 +11,15 @@ interface Props {
   items: Item[];
 }
 const { items } = Astro.props;
+// versione grande per il visualizzatore (quella nella pagina è ridotta)
+const full = await Promise.all(items.map((it) => getImage({ src: it.src, width: Math.min(it.src.width, 1400), format: 'webp', quality: 88 })));
 ---
 
 <div class="shots" style={`--n: ${items.length}`}>
   {
-    items.map((it) => (
+    items.map((it, i) => (
       <figure>
-        <Image src={it.src} alt={it.alt} width={520} format="webp" quality={85} loading="lazy" />
+        <Image src={it.src} alt={it.alt} width={520} format="webp" quality={85} loading="lazy" data-full={full[i].src} />
         {it.caption && <figcaption class="mono">{it.caption}</figcaption>}
       </figure>
     ))

@@ -45,6 +45,8 @@ const lab = defineCollection({
     highlights: z.array(z.string()).default([]),
     /** 1-3 immagini (di solito screenshot da telefono) mostrate nel riquadro "in breve" */
     briefShots: z.array(z.object({ src: image(), alt: z.string() })).default([]),
+    /** logo del progetto (se c'è): sostituisce il simbolo nelle copertine */
+    logo: image().optional(),
     /** simbolo mostrato nella copertina generata */
     glyph: z.string().default('●'),
     /** 'dots' = copertina generata; 'glyph-strips' = le strisce animate della Glyph Matrix */
