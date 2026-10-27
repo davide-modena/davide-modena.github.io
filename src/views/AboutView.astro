@@ -2,7 +2,7 @@
 import Base from '../layouts/Base.astro';
 import SectionHead from '../components/SectionHead.astro';
 import Portrait from '../components/Portrait.astro';
-import { useTranslations, path, otherLang, age } from '../i18n/utils';
+import { useTranslations, path, otherLang, ageHtml } from '../i18n/utils';
 import { experience, education, skills, offline, languages } from '../data/profile';
 import type { Lang } from '../i18n/ui';
 
@@ -25,7 +25,7 @@ const bar = (pct: number) => '█'.repeat(Math.round(pct / 10)) + '░'.repeat(1
       <div>
         <p class="label" data-reveal><span class="idx">03</span> / <b>{t('section.about')}</b></p>
         <h1 data-reveal>{t('about.title')}<span class="accent">.</span></h1>
-        <p class="statement" data-reveal style="--d:.1s">{t('about.lead', { age: age() })}</p>
+        <p class="statement" data-reveal style="--d:.1s" set:html={t('about.lead', { age: ageHtml() })} />
         <p class="lead muted" data-reveal style="--d:.15s">{t('about.body')}</p>
       </div>
       <div class="pic" data-reveal style="--d:.2s">

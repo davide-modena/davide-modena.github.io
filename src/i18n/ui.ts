@@ -17,7 +17,7 @@ export const ui = {
   it: {
     'meta.title': 'Davide Modena — Web developer',
     'meta.description':
-      'Davide Modena, web developer a Trento. Siti web su misura, veloci e scritti a mano, più un laboratorio di app, bot e progetti ESP32.',
+      'Davide Modena, web developer a Trento. Siti web su misura e veloci, più un laboratorio di app, bot e progetti ESP32.',
 
     'nav.work': 'lavori',
     'nav.lab': 'lab',
@@ -30,7 +30,7 @@ export const ui = {
 
     'hero.kicker': 'web developer — trento, it',
     'hero.typed.prefix': 'costruisco siti web',
-    'hero.typed': 'su misura.|veloci.|scritti a mano.|che si fanno ricordare.',
+    'hero.typed': 'su misura.|veloci.|che si fanno ricordare.',
     'hero.lead':
       'Progetto e sviluppo siti per studi, aziende ed eventi. Nel tempo libero costruisco app, bot e aggeggi con l’ESP32.',
     'hero.available': 'disponibile per nuovi progetti',
@@ -181,7 +181,7 @@ export const ui = {
   en: {
     'meta.title': 'Davide Modena — Web developer',
     'meta.description':
-      'Davide Modena, web developer based in Trento, Italy. Custom, fast, hand-written websites, plus a lab of apps, bots and ESP32 projects.',
+      'Davide Modena, web developer based in Trento, Italy. Custom, fast websites, plus a lab of apps, bots and ESP32 projects.',
 
     'nav.work': 'work',
     'nav.lab': 'lab',
@@ -194,7 +194,7 @@ export const ui = {
 
     'hero.kicker': 'web developer — trento, it',
     'hero.typed.prefix': 'i build websites',
-    'hero.typed': 'that fit.|that load fast.|written by hand.|people remember.',
+    'hero.typed': 'that fit.|that load fast.|people remember.',
     'hero.lead':
       'I design and build websites for studios, companies and events. In my spare time I make apps, bots and gadgets with the ESP32.',
     'hero.available': 'available for new projects',

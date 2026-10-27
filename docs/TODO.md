@@ -14,24 +14,17 @@
       sessione della repo: linea di stazioni con il filtro della posizione credibile on/off, selettore "Per quando?"
       con ruote.
 - [ ] **Trenitardo — hero**: vedere come migliorarla, se serve (la lasciamo uguale all'app, scura anche col tema chiaro).
-- [ ] **Hevy Companion — pagina**:
-      - aggiungere il riquadro "in breve" (riassunto + punti chiave).
 - [ ] **Uva e Dintorni — pagina del lavoro**: spiegare il design del sito, ispirato al nuovo volantino di Aurora
       Mattei; parlare della funzione dei giorni (si vedono gli eventi live e le corti aperte); mostrare anche il
       totem, magari sia come video sia come iframe interattivo (o simile).
 - [ ] **Progetti Lab da GitHub (pagine da scrivere col prompt)**: wear remote (con monitoring), dsupad, buonarroti
       home (da valutare), no more google pls, feed my brain, graph tool, pktmd, choppa, mentimeter-lite,
       px-wallpapers (da valutare), next-question, waypoints.
-- [ ] **Età**: farla aggiornare in automatico con un calcolo (anno corrente − anno di nascita) invece del valore
-      fisso; passando il mouse su "21" compare il codice del calcolo in inglese (tipo `currentYear - birthYear`).
 - [ ] **Pagina sul lavoro alle ITT**: scuola zoomata in stile Google Earth, cosa faccio, competenze, ecc. Dove
       metterla (sezione in Chi sono oppure pagina nascosta raggiungibile solo da link) lo decidiamo quando ci
       arriviamo.
-- [ ] **Home**: togliere "scritti a mano" dal testo che si scrive da solo nell'hero (fa ridere).
 - [ ] **Licenza font Ndot57**: la hero di Trenitardo usa il font Ndot57 (Nothing) copiato dalla repo; verificare
       che sia ridistribuibile sul sito pubblico, altrimenti sostituirlo con un font a puntini libero.
-- [ ] **Trenitardo — da confermare**: link del bot Telegram, repo pubblica o privata (ora senza `repo`),
-      app per l'orologio = Wear OS?
 - [ ] **Essential Search**: è un altro progetto di Davide che andrà nel Lab; quando c'è la sua pagina, linkarla
       da Trenitardo (oggi è solo nominata nel testo, nella scheda "Anche da Telegram e dalla barra del PC").
 - [ ] **Lab — vista a costellazione**: oltre alla griglia di schede, una seconda vista selezionabile in cui i
@@ -48,6 +41,9 @@
 
 ## Fatto di recente
 
+- Età che si aggiorna da sola (calcolo dalla data di nascita; al passaggio del mouse compare `currentYear - birthYear`).
+- Home: tolto "scritti a mano" dal testo che si scrive da solo.
+- Hevy Companion: riquadro "in breve". Trenitardo: link al bot Telegram, app per Wear OS, repo privata (nessun link).
 - Ricostruzioni HTML (notifiche di Hevy e Trenitardo, widget) che seguono il tema chiaro/scuro; la hero resta scura.
 - Widget di Trenitardo quadrato (2×2, nomi lunghi in sigla).
 - Hevy: allenamento già pronto (4 esercizi di fila, riposo di 10 s) con soli 3 bottoni (precedente, pausa, successivo).

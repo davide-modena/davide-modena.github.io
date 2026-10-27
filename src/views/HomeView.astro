@@ -5,7 +5,7 @@ import Showcase from '../components/Showcase.astro';
 import LabCard from '../components/LabCard.astro';
 import SectionHead from '../components/SectionHead.astro';
 import { getLocalized } from '../lib/content';
-import { useTranslations, path, age } from '../i18n/utils';
+import { useTranslations, path, ageHtml } from '../i18n/utils';
 import { experience, skills } from '../data/profile';
 import type { Lang } from '../i18n/ui';
 
@@ -52,7 +52,7 @@ const fmt = (ym: string) => ym.slice(0, 4);
       <SectionHead index="03" label={t('section.about')} />
       <div class="about">
         <div>
-          <p class="statement" data-reveal>{t('about.lead', { age: age() })}</p>
+          <p class="statement" data-reveal set:html={t('about.lead', { age: ageHtml() })} />
           <p class="body muted" data-reveal style="--d:.1s">{t('about.body')}</p>
           <a href={path('about', lang)} class="btn" data-reveal style="--d:.2s">{t('about.more')} <span class="arrow">→</span></a>
         </div>

@@ -21,10 +21,4 @@ export function path(id: RouteId, lang: Lang, slug?: string): string {
 
 export const otherLang = (lang: Lang): Lang => (lang === 'it' ? 'en' : 'it');
 
-const BIRTHDAY = new Date('2005-07-11');
-export function age(now = new Date()): number {
-  let a = now.getFullYear() - BIRTHDAY.getFullYear();
-  const m = now.getMonth() - BIRTHDAY.getMonth();
-  if (m < 0 || (m === 0 && now.getDate() < BIRTHDAY.getDate())) a--;
-  return a;
-}
+export { age, ageHtml } from '../lib/age';

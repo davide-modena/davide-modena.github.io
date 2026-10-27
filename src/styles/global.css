@@ -1107,3 +1107,37 @@ dialog.lightbox .lb-nav[hidden] {
     opacity: 0;
   }
 }
+
+
+/* età con il calcolo al passaggio del mouse (src/lib/age.ts) */
+.age {
+  position: relative;
+  display: inline-block;
+  cursor: help;
+  border-bottom: 1px dotted var(--fg-3);
+}
+.age-tip {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 8px);
+  transform: translate(-50%, 4px);
+  padding: 4px 9px;
+  border: 1px solid var(--line-2);
+  border-radius: 6px;
+  background: var(--bg-2);
+  color: var(--fg-2);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.2s,
+    transform 0.2s;
+}
+.age:hover .age-tip,
+.age:focus-visible .age-tip {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
