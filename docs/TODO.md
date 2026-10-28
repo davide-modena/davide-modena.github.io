@@ -6,10 +6,6 @@
       di installazione). Per ogni app chiedere se c'è qualcosa da provare o scaricare: sito/PWA, APK, GitHub.
       Hevy Companion: il campo `repo` punta a una repo privata (il link "codice" porta a 404): togliere finché non è
       pubblica, poi mettere la CTA. In futuro aggiungere accanto al bottone anche l'APK e GitHub.
-- [ ] **Navbar — blur**: non lo vedi né su Brave/Windows né su Chrome Android, mentre sul mio Chromium si
-      applica. Il CSS è corretto (`backdrop-filter` calcolato ok, nessun antenato che lo blocchi): ho alzato il
-      blur da 14 a 24 px nel caso fosse solo troppo leggero. Se ancora non lo vedi, serve una foto o un test
-      su una pagina isolata.
 - [ ] **Chrome su Android — scatti**: fatto un fix (altezza stabile al posto di `innerHeight`); da verificare su un
       telefono vero.
 - [ ] **Hevy Companion — mockup**: sostituire la foto del telefono con una che scatto io (mockup della Glyph).
@@ -51,6 +47,7 @@
 
 ## Fatto di recente
 
+- Navbar: il blur ora funziona su Chrome e Brave (la build teneva solo il prefisso -webkit-). Tolta la freccia ↗ dalle card del Lab.
 - Immagini ingrandite su telefono sistemate (prima l'immagine finiva in una colonna da 0 px).
 - Trenitardo: pulsante "Prova l'app" subito sotto il titolo, con il promemoria per installarla (iPhone e Android).
 - Età che si aggiorna da sola (calcolo dalla data di nascita; al passaggio del mouse compare `currentYear - birthYear`).
