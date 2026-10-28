@@ -23,7 +23,7 @@ const d = entry.data;
     ) : d.visual === 'train-hero' ? (
       <div class="cover-box">
         <TrainHero bare />
-        {d.logo && <img class="logo top" src={d.logo.src} alt="" width="34" height="34" />}
+        {d.logo && <img class="logo" src={d.logo.src} alt="" width="44" height="44" />}
       </div>
     ) : (
       <DotCover seed={entry.slug} kind={d.kind} glyph={d.glyph} logo={d.logo?.src} />
@@ -75,16 +75,6 @@ const d = entry.data;
     height: 44px;
     border-radius: 11px;
     box-shadow: 0 0 0 1px rgb(255 255 255 / 0.18), 0 6px 18px rgb(0 0 0 / 0.5);
-  }
-  /* sulla hero del treno il simbolo va in alto a destra, dove il tabellone è vuoto */
-  .logo.top {
-    left: auto;
-    bottom: auto;
-    top: 12px;
-    right: 12px;
-    width: 34px;
-    height: 34px;
-    border-radius: 9px;
   }
   .body {
     display: flex;
