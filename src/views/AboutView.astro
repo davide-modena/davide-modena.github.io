@@ -3,6 +3,7 @@ import Base from '../layouts/Base.astro';
 import SectionHead from '../components/SectionHead.astro';
 import Portrait from '../components/Portrait.astro';
 import { useTranslations, path, otherLang, ageHtml } from '../i18n/utils';
+import { ittCopy } from '../data/itt';
 import { experience, education, skills, offline, languages } from '../data/profile';
 import type { Lang } from '../i18n/ui';
 
@@ -47,6 +48,11 @@ const bar = (pct: number) => '█'.repeat(Math.round(pct / 10)) + '░'.repeat(1
                 <h3>{j.role[lang]}</h3>
                 <p class="org mono">{j.org}</p>
                 <p class="muted">{j.text[lang]}</p>
+                {j.org.startsWith('ITT') && j.to === undefined && (
+                  <p class="more mono">
+                    <a href={path('about', lang, 'itt')}>{ittCopy.more[lang]}</a>
+                  </p>
+                )}
               </div>
             </li>
           ))
@@ -165,6 +171,10 @@ const bar = (pct: number) => '█'.repeat(Math.round(pct / 10)) + '░'.repeat(1
     font-size: 12.5px;
     color: var(--accent);
     margin: 8px 0 12px;
+  }
+  .more {
+    margin-top: 14px;
+    font-size: 13px;
   }
   .timeline .muted {
     max-width: 60ch;

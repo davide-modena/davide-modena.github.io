@@ -1,0 +1,198 @@
+---
+import fs from 'node:fs';
+import Base from '../layouts/Base.astro';
+import SectionHead from '../components/SectionHead.astro';
+import { path, otherLang } from '../i18n/utils';
+import { ittCopy as c, ittVideo, ittPoster } from '../data/itt';
+import type { Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+// il video si mostra solo se il file è nella cartella public (è pesante: va compresso prima)
+const hasVideo = fs.existsSync(new URL(`../../public${ittVideo}`, import.meta.url));
+const hasPoster = fs.existsSync(new URL(`../../public${ittPoster}`, import.meta.url));
+const tx = (v: string | { it: string; en: string }) => (typeof v === 'string' ? v : v[lang]);
+const where = `~/${lang === 'it' ? 'chi-sono' : 'about'}/itt`;
+---
+
+<Base lang={lang} alternate={`${path('about', otherLang(lang), 'itt')}`} title={c.title[lang]} path={where}>
+  <section class="page-head" data-section={where}>
+    <div class="frame">
+      <p class="label" data-reveal><span class="idx">03</span> / <b>ITT Buonarroti, Trento</b></p>
+      <h1 data-reveal>{c.title[lang]}<span class="accent">.</span></h1>
+      <p class="statement" data-reveal style="--d:.1s">{c.lead[lang]}</p>
+    </div>
+    {
+      hasVideo && (
+        <div class="frame">
+          <figure class="film" data-reveal style="--d:.15s">
+            <video
+              src={ittVideo}
+              poster={hasPoster ? ittPoster : undefined}
+              muted
+              loop
+              playsinline
+              preload="metadata"
+              data-film
+              aria-label={lang === 'it' ? "La scuola vista dall'alto con un drone" : 'The school seen from above, filmed with a drone'}
+            />
+          </figure>
+        </div>
+      )
+    }
+  </section>
+
+  <section class="section" data-section={`${where}/${c.role.label[lang]}`}>
+    <span class="cross l"></span><span class="cross r"></span>
+    <div class="frame">
+      <SectionHead index="a" label={c.role.label[lang]} title={c.role.title[lang]} />
+      <div class="text">
+        {c.role.text[lang].map((p) => <p class="muted" data-reveal>{p}</p>)}
+      </div>
+    </div>
+  </section>
+
+  <section class="section" data-section={`${where}/${c.teach.label[lang]}`}>
+    <span class="cross l"></span><span class="cross r"></span>
+    <div class="frame">
+      <SectionHead index="b" label={c.teach.label[lang]} title={c.teach.title[lang]} />
+      <div class="years">
+        {
+          c.years.map((y) => (
+            <article class="year" data-reveal>
+              <p class="label">
+                {y.year[lang]} · <b>{y.subject}</b>
+              </p>
+              {'subjectFull' in y && <p class="full muted">{y.subjectFull[lang]}</p>}
+              <ul class="tags">
+                {y.topics.map((t) => <li class="tag">{tx(t)}</li>)}
+              </ul>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="section" data-section={`${where}/${c.how.label[lang]}`}>
+    <span class="cross l"></span><span class="cross r"></span>
+    <div class="frame">
+      <SectionHead index="c" label={c.how.label[lang]} title={c.how.title[lang]} />
+      <ol class="how">
+        {
+          c.how.items.map((i, n) => (
+            <li data-reveal>
+              <span class="n mono">0{n + 1}</span>
+              <div>
+                <h3>{i.t[lang]}</h3>
+                <p class="muted">{i.d[lang]}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <section class="section" data-section={`${where}/${c.why.label[lang]}`}>
+    <span class="cross l"></span><span class="cross r"></span>
+    <div class="frame">
+      <SectionHead index="d" label={c.why.label[lang]} title={c.why.title[lang]} />
+      <div class="text">
+        {c.why.text[lang].map((p) => <p class="muted" data-reveal>{p}</p>)}
+      </div>
+      <p class="back mono" data-reveal><a href={path('about', lang)}>← {c.back[lang]}</a></p>
+    </div>
+  </section>
+</Base>
+
+<script>
+  // il video parte solo quando si vede e si ferma se esce dallo schermo; con "riduci movimento" non parte
+  const film = document.querySelector<HTMLVideoElement>('[data-film]');
+  if (film && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    new IntersectionObserver((e) => {
+      if (e[0].isIntersecting) film.play().catch(() => {});
+      else film.pause();
+    }).observe(film);
+  }
+</script>
+
+<style>
+  .statement {
+    font-size: clamp(22px, 2.4vw, 32px);
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+    max-width: 34ch;
+    margin: 24px 0 0;
+  }
+  .film {
+    margin: clamp(32px, 5vw, 56px) 0 0;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--bg-2);
+  }
+  .film video {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+  }
+  .text {
+    display: grid;
+    gap: 16px;
+    max-width: 62ch;
+    font-size: 17px;
+  }
+  .years {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .year {
+    background: var(--bg);
+    padding: 22px;
+  }
+  .year .label {
+    margin-bottom: 14px;
+  }
+  .year .full {
+    margin: -6px 0 14px;
+    font-size: 13px;
+  }
+  .how {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border-top: 1px solid var(--line);
+  }
+  .how li {
+    display: grid;
+    grid-template-columns: 56px minmax(0, 1fr);
+    gap: 16px;
+    padding: 24px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .how .n {
+    font-size: 12.5px;
+    color: var(--accent);
+    padding-top: 6px;
+  }
+  .how h3 {
+    font-size: clamp(20px, 2vw, 26px);
+    margin-bottom: 6px;
+  }
+  .how .muted {
+    max-width: 58ch;
+  }
+  .back {
+    margin-top: clamp(40px, 6vw, 72px);
+    font-size: 13px;
+  }
+</style>
