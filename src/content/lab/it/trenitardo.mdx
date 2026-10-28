@@ -12,8 +12,9 @@ visual: train-hero
 logo: ../../../assets/logos/trenitardo.svg
 summary: >
   Trenitardo ti dice dov'è il tuo treno adesso, di quanto è in ritardo e fra quanto arriva alla tua fermata, e
-  ti avvisa mentre viaggi. Nasce dai dati pubblici di ViaggiaTreno per la linea Verona–Brennero ed è una web
-  app installabile, un'app Android e un bot Telegram, tutti alimentati dallo stesso servizio.
+  ti avvisa mentre viaggi. Nasce dai dati pubblici di ViaggiaTreno, partito dalla linea Verona–Brennero, e
+  funziona per i treni di tutta Italia. È una web app installabile, un'app Android e un bot Telegram, tutti
+  alimentati dallo stesso servizio.
 highlights: [PWA installabile, app Android, bot Telegram, orologio e widget]
 briefShots:
   - src: ../../../assets/projects/trenitardo/01-home-mobile.jpg
@@ -42,7 +43,8 @@ Le app dei treni ti danno il ritardo, ma quasi mai la risposta che serve davvero
 arriva da me.* I dati per saperlo esistono: li pubblica ViaggiaTreno. Ma sono pensati per un tabellone, non
 per una persona con il telefono in mano, e a volte sono sbagliati o in ritardo anche loro.
 
-Ho costruito Trenitardo per rispondere solo a quella domanda, sulla linea che uso: Verona–Brennero.
+Ho costruito Trenitardo per rispondere solo a quella domanda. Ho cominciato dalla linea che uso, Verona–Brennero,
+ma si può cercare qualsiasi treno o stazione d'Italia.
 
 ## Come funziona
 
@@ -103,6 +105,11 @@ solo poco prima della partenza.
 
 La posizione è filtrata: un treno non torna indietro, e un rilevamento strano non sposta il pallino sulla
 stazione sbagliata. Se oltre 15 minuti dopo l'orario previsto non è ancora partito, lo dice in rosso.
+
+### Lo stato della linea
+
+Per la Verona–Brennero c'è anche una pagina con lo stato di tutta la linea, ispirata alle mappe della metropolitana:
+si vede a colpo d'occhio se il servizio è regolare. Esiste solo per questa linea.
 
 ### Orari fino a 60 giorni avanti
 
