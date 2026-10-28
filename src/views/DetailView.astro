@@ -66,6 +66,23 @@ const meta: { label: string; value: string; href?: string }[] =
         <h1 data-reveal>{d.title}</h1>
         <p class="lead" data-reveal style="--d:.08s">{kind === 'works' ? d.summary : d.tagline}</p>
         {entry.fallback && <p class="fallback mono" data-reveal>{t('lang.fallback')}</p>}
+        {
+          d.try && (
+            <div class="try" data-reveal style="--d:.14s">
+              <a href={d.try.url} class="btn btn-primary" target="_blank" rel="noopener">
+                {d.try.label ?? t('cta.try')} <span class="arrow">↗</span>
+              </a>
+              <span class="try-host mono">{new URL(d.try.url).host}</span>
+              {d.try.install && (
+                <p class="try-install mono">
+                  {t('cta.install')}
+                  <span>{t('cta.ios')}</span>
+                  <span>{t('cta.android')}</span>
+                </p>
+              )}
+            </div>
+          )
+        }
       </header>
 
       <dl class="meta" data-reveal style="--d:.15s">
@@ -185,6 +202,30 @@ const meta: { label: string; value: string; href?: string }[] =
     font-size: clamp(19px, 1.9vw, 26px);
     line-height: 1.35;
     letter-spacing: -0.015em;
+    color: var(--fg-2);
+  }
+  /* invito a provare l'app: subito sotto il titolo */
+  .try {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 16px;
+    margin-top: 32px;
+  }
+  .try-host {
+    font-size: 12.5px;
+    color: var(--fg-3);
+  }
+  .try-install {
+    flex-basis: 100%;
+    display: grid;
+    gap: 4px;
+    margin: 4px 0 0;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--fg-3);
+  }
+  .try-install span {
     color: var(--fg-2);
   }
   .fallback {

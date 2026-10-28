@@ -1043,7 +1043,7 @@ dialog.lightbox figure {
 }
 dialog.lightbox img {
   max-width: 100%;
-  max-height: calc(100vh - 110px);
+  max-height: calc(100dvh - 110px);
   width: auto;
   height: auto;
   border-radius: 10px;
@@ -1084,8 +1084,15 @@ dialog.lightbox .lb-nav[hidden] {
   display: none;
 }
 @media (max-width: 600px) {
+  /* una sola colonna: le frecce sono fisse in basso e non occupano posto nella griglia
+     (con tre colonne l'immagine finiva in quella da 0 px) */
   dialog.lightbox[open] {
-    grid-template-columns: 0 minmax(0, 1fr) 0;
+    grid-template-columns: minmax(0, 1fr);
+    align-content: center;
+    padding: 56px 12px 76px;
+  }
+  dialog.lightbox figure {
+    grid-column: 1;
   }
   dialog.lightbox .lb-nav {
     position: fixed;
@@ -1099,7 +1106,7 @@ dialog.lightbox .lb-nav[hidden] {
     right: 16px;
   }
   dialog.lightbox img {
-    max-height: calc(100vh - 150px);
+    max-height: calc(100dvh - 240px);
   }
 }
 @keyframes lb-in {

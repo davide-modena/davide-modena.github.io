@@ -14,6 +14,8 @@ const { path } = Astro.props;
 </div>
 
 <script>
+  import { stableHeight } from '../lib/viewport';
+
   const bar = document.querySelector<HTMLElement>('.statusbar')!;
   const pathEl = bar.querySelector<HTMLElement>('.path')!;
   const progress = bar.querySelector<HTMLElement>('.progress')!;
@@ -32,7 +34,7 @@ const { path } = Astro.props;
 
   // la sezione "attiva" è l'ultima il cui bordo alto ha superato il 40% dello schermo
   function update() {
-    const line = innerHeight * 0.4;
+    const line = stableHeight() * 0.4;
     let current = fallback;
     for (const s of sections) if (s.getBoundingClientRect().top < line) current = s.dataset.section!;
     show(current);

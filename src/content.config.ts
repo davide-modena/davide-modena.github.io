@@ -45,6 +45,14 @@ const lab = defineCollection({
     highlights: z.array(z.string()).default([]),
     /** 1-3 immagini (di solito screenshot da telefono) mostrate nel riquadro "in breve" */
     briefShots: z.array(z.object({ src: image(), alt: z.string() })).default([]),
+    /** invito a provare l'app, in evidenza sotto il titolo; `install` aggiunge il promemoria per installarla (PWA) */
+    try: z
+      .object({
+        url: z.url(),
+        label: z.string().optional(),
+        install: z.boolean().default(false),
+      })
+      .optional(),
     /** logo del progetto (se c'è): sostituisce il simbolo nelle copertine */
     logo: image().optional(),
     /** simbolo mostrato nella copertina generata */

@@ -74,6 +74,10 @@ export const ui = {
     'work.index.lead': 'Siti web progettati e sviluppati per clienti veri, dal primo schizzo alla messa online.',
 
     'lab.back': 'tutto il lab',
+    'cta.try': 'Prova l’app',
+    'cta.install': 'Si installa come una vera app, senza store:',
+    'cta.ios': 'iPhone: Condividi → Aggiungi alla schermata Home',
+    'cta.android': 'Android: menu ⋮ → Installa app',
     'detail.brief': 'in breve',
     'detail.full': 'il dettaglio',
     'lab.index.title': 'Lab',
@@ -238,6 +242,10 @@ export const ui = {
     'work.index.lead': 'Websites designed and built for real clients, from the first sketch to going live.',
 
     'lab.back': 'the whole lab',
+    'cta.try': 'Try the app',
+    'cta.install': 'It installs like a real app, no store needed:',
+    'cta.ios': 'iPhone: Share → Add to Home Screen',
+    'cta.android': 'Android: menu ⋮ → Install app',
     'detail.brief': 'at a glance',
     'detail.full': 'the details',
     'lab.index.title': 'Lab',

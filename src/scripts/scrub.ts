@@ -10,6 +10,8 @@
 // a ogni fotogramma prima si leggono tutte le posizioni e poi si scrivono solo le trasformazioni
 // (niente variabili CSS, che farebbero ricalcolare gli stili di tutto il blocco).
 
+import { stableHeight } from '../lib/viewport';
+
 const clamp = (v: number) => Math.min(1, Math.max(0, v));
 // ease-in-out (sinusoidale): parte e arriva dolce, senza scatti alle estremità
 const ease = (t: number) => 0.5 - Math.cos(Math.PI * t) / 2;
@@ -51,7 +53,7 @@ function measure() {
 
 function update() {
   queued = false;
-  const vh = innerHeight;
+  const vh = stableHeight(); // non innerHeight: con la barra di Chrome Android cambierebbe mentre scorri
   // prima tutte le letture…
   const rects = tracks.map((t) => t.el.getBoundingClientRect());
   // …poi tutte le scritture
@@ -84,7 +86,13 @@ function queue() {
 }
 
 addEventListener('scroll', queue, { passive: true });
-addEventListener('resize', measure);
+// il resize che cambia solo l'altezza (barra del browser) non deve ricalcolare niente
+let lastW = innerWidth;
+addEventListener('resize', () => {
+  if (innerWidth === lastW) return;
+  lastW = innerWidth;
+  measure();
+});
 // le immagini lazy cambiano altezza quando arrivano
 for (const t of tracks) for (const i of t.imgs) i.img.addEventListener('load', measure);
 measure();

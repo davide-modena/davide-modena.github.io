@@ -2,6 +2,15 @@
 
 ## Da fare
 
+- [ ] **CTA per provare le app** (`try` nell'intestazione del progetto): c'è solo per Trenitardo (PWA con promemoria
+      di installazione). Per ogni app chiedere se c'è qualcosa da provare o scaricare: sito/PWA, APK, GitHub.
+      Hevy Companion: il campo `repo` punta a una repo privata (il link "codice" porta a 404): togliere finché non è
+      pubblica, poi mettere la CTA. In futuro aggiungere accanto al bottone anche l'APK e GitHub.
+- [ ] **Navbar — blur**: sul tuo browser il blur non viene applicato (le lettere sotto restano nitide, solo
+      schiarite). Capire con che browser/telefono; poi decidere se rendere lo sfondo più opaco (così non si vede
+      il testo dietro) o più trasparente con più blur.
+- [ ] **Chrome su Android — scatti**: fatto un fix (altezza stabile al posto di `innerHeight`); da verificare su un
+      telefono vero.
 - [ ] **Hevy Companion — mockup**: sostituire la foto del telefono con una che scatto io (mockup della Glyph).
 - [ ] **Form contatti**: è nascosto (`FORM_ENABLED = false` in `src/views/ContactView.astro`). Da ripristinare
       con Netlify Forms o Web3Forms/Formspree.
@@ -41,6 +50,8 @@
 
 ## Fatto di recente
 
+- Immagini ingrandite su telefono sistemate (prima l'immagine finiva in una colonna da 0 px).
+- Trenitardo: pulsante "Prova l'app" subito sotto il titolo, con il promemoria per installarla (iPhone e Android).
 - Età che si aggiorna da sola (calcolo dalla data di nascita; al passaggio del mouse compare `currentYear - birthYear`).
 - Home: tolto "scritti a mano" dal testo che si scrive da solo.
 - Hevy Companion: riquadro "in breve". Trenitardo: link al bot Telegram, app per Wear OS, repo privata (nessun link).
