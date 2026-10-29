@@ -33,6 +33,7 @@ const lab = defineCollection({
     year: z.string(),
     kind: z.enum(['web', 'app', 'bot', 'hardware', 'tool']),
     stack: z.array(z.string()),
+    hidden: z.boolean().default(false),
     live: z.url().optional(),
     repo: z.url().optional(),
     featured: z.boolean().default(false),

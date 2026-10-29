@@ -12,6 +12,8 @@ export async function getLocalized<K extends Key>(key: K, lang: Lang): Promise<L
   const all = (await getCollection(key)) as CollectionEntry<K>[];
   const bySlug = new Map<string, Localized<K>>();
   for (const entry of all) {
+    // `hidden: true` nell'intestazione toglie la voce dal sito senza cancellare il file
+    if ((entry.data as { hidden?: boolean }).hidden) continue;
     const [entryLang, slug] = entry.id.split('/');
     const isWanted = entryLang === lang;
     const existing = bySlug.get(slug);
