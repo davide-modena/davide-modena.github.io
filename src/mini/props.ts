@@ -34,6 +34,19 @@ const PAL: Record<string, string> = {
   q: '#8d939c', // piccione
   Q: '#5c626b', // piccione scuro
   v: '#6fb58a', // riflesso sul collo del piccione
+  D: '#8A9096', // treno: mozzi
+  a: '#F1F1EF', // treno: cassa
+  c: '#DCDCD8', // treno: cassa in ombra
+  d: '#FFFFFF', // treno: cassa in luce
+  f: '#D71921', // treno: fascia rossa
+  h: '#A8131A', // treno: fascia rossa scura
+  i: '#22292F', // treno: vetri
+  j: '#3A4650', // treno: riflesso dei vetri
+  o: '#4A4F54', // treno: grigio treno
+  t: '#2E3236', // treno: sottocassa
+  u: '#E2E2DE', // treno: porte, tetto
+  x: '#FFF6C8', // treno: fari
+  z: '#3B444C', // treno: montanti
 };
 
 // --- griglie ----------------------------------------------------------------------------------
@@ -150,28 +163,56 @@ function board(step: number) {
   return toRows(g);
 }
 
-/** treno regionale, stile Trenitardo: nero, fascia rossa, finestrini a matrice */
+/** il treno regionale della hero "Sobria" di Trenitardo (src/components/sober/Treni.jsx), ridotto a pixel art */
+const TRAIN = [
+  '................aaaaaaaaaaaaaaacccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccu...cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc...ucccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccaaaaaaaaaaaaaad................',
+  '...............daaaaaaaaaaaaaaacccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccu...cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc...ucccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccaaaaaaaaaaaaaadd...............',
+  '..............ddaaaaaaaaaaaaaaauuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu...uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu...uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuaaaaaaaaaaaaaaadd..............',
+  '.............dddDttttttttttDaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaacoooaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaooocaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaDttttttttttDddd.............',
+  '............dddDtiiiiiiiiiiDaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaacoooaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaooocaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaDiiiiiiiiiitDddd............',
+  '...........dddDziiiiiiiiiiiDaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauuuuuuuuuuuaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaacoooaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauuuuuuuuuuuuaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaooocaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauuuuuuuuuuuaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaDiiiiiiiiiiizDddd...........',
+  '..........dddDjtiiiiiiiiiiiDaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauuuuuuuuuuuuuaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaacoooaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauuuuuuuuuuuuaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaooocaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauuuuuuuuuuuuuaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaDiiiiiiiiiiitjDddd..........',
+  '.........ddaDjziiiiiiiiiiiiDaaaaaaaaDooooooooooocaaaaaDoooooooooooDcoooouDoooDuaaDoooooooooooDaaaaacoooooooooooDaacoooaaaaaDoooooooooooDaaaaacoooooooooooDuooooccoooouaaDoooooooooooDaaaaauoooooooooooocaaooocaaaacoooooooooooocaaaaaDooooooooooocDoooDuoooocuacoooooooooooocaaaaaDoooooooooooDaaaaaDiiiiiiiiiiiizjDadd.........',
+  '........daaDjjtiiiiiiiiiiiiDaaaaaaaDiiiiiiiiiiiizaaaaaziiiiiiiiiiiDDiiiicziiiouaciiiiiiiiiiiizaaaaaziiiiiiiiiiiiDacoooaaaaatiiiiiiiiiiiicaaaaDiiiiiiiiiiizciiiiDDiiiicaatiiiiiiiiiiiicaaaaDiiiiiiiiiiiioaaooocaaaaDiiiiiiiiiiiiDaaaaciiiiiiiiiiiicoiiizciiiiDuaDiiiiiiiiiiiiDaaaaciiiiiiiiiiiiiuaaaaDiiiiiiiiiiiitjjDaad........',
+  '.......aaaDjjziiiiiiiiiiiiiDaaaaaaaDiiiiiiiiiiiitaaaaatiiiiiiiiiiiDDiiiicziiiouaDiiiiiiiiiiiitaaaaatiiiiiiiiiiiiDacoooaaaaaiiiiiiiiiiiiicaaaaDiiiiiiiiiiizciiiiDDiiiicaaiiiiiiiiiiiiiDaaaaDiiiiiiiiiiiioaaooocaaaaoiiiiiiiiiiiioaaaaciiiiiiiiiiiicoiiizciiiiDuaDiiiiiiiiiiiioaaaaciiiiiiiiiiiiicaaaaDiiiiiiiiiiiiizjjDaaa.......',
+  '......aaaDjjjtiiiiiiiiiiiiiDaaaaaaaDiiiiiiiiiiiitaaaaatiiiiiiiiiiiDDiiiicziiiouaDiiiiiiiiiiiitaaaaatiiiiiiiiiiiiDacoooaaaaaiiiiiiiiiiiiicaaaaDiiiiiiiiiiizciiiiDDiiiicaaiiiiiiiiiiiiiDaaaaDiiiiiiiiiiiioaaooocaaaaoiiiiiiiiiiiioaaaaciiiiiiiiiiiicoiiizciiiiDuaDiiiiiiiiiiiioaaaaciiiiiiiiiiiiicaaaaDiiiiiiiiiiiiitjjjDaaa......',
+  '.....uaaDjjztiiiiiiiiiiiiiiDaaaaaaaDiiiiiiiiiiiitaaaaatiiiiiiiiiiiDDiiiicziiiouaDiiiiiiiiiiiitaaaaatiiiiiiiiiiiiDacoooaaaaaiiiiiiiiiiiiicaaaaDiiiiiiiiiiizciiiiDDiiiicaaiiiiiiiiiiiiiDaaaaDiiiiiiiiiiiioaaooocaaaaoiiiiiiiiiiiioaaaaciiiiiiiiiiiicoiiizciiiiDuaDiiiiiiiiiiiioaaaaciiiiiiiiiiiiicaaaaDiiiiiiiiiiiiiitzjjDaau.....',
+  '.....uaDztiiiiiiiiiiiiiiiiiDaaaaaaaDiiiiiiiiiiiitaaaaatiiiiiiiiiiiDDiiiicziiiouaDiiiiiiiiiiiitaaaaatiiiiiiiiiiiiDacoooaaaaaiiiiiiiiiiiiicaaaaDiiiiiiiiiiizciiiiDDiiiicaaiiiiiiiiiiiiiDaaaaDiiiiiiiiiiiioaaooocaaaaoiiiiiiiiiiiioaaaaciiiiiiiiiiiicoiiizciiiiDuaDiiiiiiiiiiiioaaaaciiiiiiiiiiiiicaaaaDiiiiiiiiiiiiiiiiitzDau.....',
+  '.....cctiiiiiiiiiiiiiiiiiiiDaaaaaaaDiiiiiiiiiiiitaaaaatiiiiiiiiiiiDDiiiicziiiouaDiiiiiiiiiiiitaaaaatiiiiiiiiiiiiDacoooaaaaaiiiiiiiiiiiiicaaaaDiiiiiiiiiiizciiiiDDiiiicaaiiiiiiiiiiiiiDaaaaDiiiiiiiiiiiioaaooocaaaaoiiiiiiiiiiiioaaaaciiiiiiiiiiiicoiiizciiiiDuaDiiiiiiiiiiiioaaaaciiiiiiiiiiiiicaaaaDiiiiiiiiiiiiiiiiiiitcc.....',
+  '....ucDiiiiiiiiiiiiiiiiiiiiDaaaaaaaDiiiiiiiiiiiitaaaaatiiiiiiiiiiiDDiiiicziiiouaDiiiiiiiiiiiitaaaaatiiiiiiiiiiiiDacoooaaaaaiiiiiiiiiiiiicaaaaDiiiiiiiiiiizciiiiDDiiiicaaiiiiiiiiiiiiiDaaaaDiiiiiiiiiiiioaaooocaaaaoiiiiiiiiiiiioaaaaciiiiiiiiiiiicoiiizciiiiDuaDiiiiiiiiiiiioaaaaciiiiiiiiiiiiicaaaaDiiiiiiiiiiiiiiiiiiiiDcu....',
+  '....ucoiiiiiiiiiiiiiiiiiiiiDaaaaaaaDiiiiiiiiiiiitaaaaatiiiiiiiiiiiDDiiiicziiiouaDiiiiiiiiiiiitaaaaatiiiiiiiiiiiiDacoooaaaaaiiiiiiiiiiiiicaaaaDiiiiiiiiiiizciiiiDDiiiicaaiiiiiiiiiiiiiDaaaaDiiiiiiiiiiiioaaooocaaaaoiiiiiiiiiiiioaaaaciiiiiiiiiiiicoiiizciiiiDuaDiiiiiiiiiiiioaaaaciiiiiiiiiiiiicaaaaDiiiiiiiiiiiiiiiiiiiiocu....',
+  '....cctiiiiiiiiiiiiiiiiiiiiDaaaaaaaciiiiiiiiiiiioaaaaaoiiiiiiiiiiiDDiiiicziiiouaciiiiiiiiiiiioaaaaaoiiiiiiiiiiiicacoooaaaaaziiiiiiiiiiitcaaaaDiiiiiiiiiiizciiiiDDiiiicaaoiiiiiiiiiiiicaaaaDiiiiiiiiiiiiDaaooocaaaaDiiiiiiiiiiiiDaaaautiiiiiiiiiiicoiiizciiiiDuaDiiiiiiiiiiiiDaaaautiiiiiiiiiiizaaaaaDiiiiiiiiiiiiiiiiiiiitcc....',
+  '...ucDiiiiiiiiiiiiiiiiiiiiiDaaaaaaaacDDDDDDDDDDDuaaaaauDDDDDDDDDDDcDiiiicziiiouaacDDDDDDDDDDDuaaaaauDDDDDDDDDDDcaacoooaaaaacDDDDDDDDDDDcaaaaaaDDDDDDDDDDDDciiiiDDiiiicaauDDDDDDDDDDDcaaaaaacDDDDDDDDDDDaaaooocaaaaaDDDDDDDDDDDDaaaaaacDDDDDDDDDDDuoiiizciiiiDuaaDDDDDDDDDDDDaaaaaacDDDDDDDDDDDcaaaaaDiiiiiiiiiiiiiiiiiiiiiDcu...',
+  '...ucDiiiiiiiiiiiiiiiizooDDcaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauDiiiicziiiouaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaacoooaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaciiiiDDiiiicaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaooocaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauoiiizciiiiDuaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaacDDooziiiiiiiiiiiiiiiiDcu...',
+  '...ccziiiiitoooDDDDccaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauDiiiicziiiouaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaacoooaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaciiiiDDiiiicaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaooocaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauoiiizciiiiDuaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaccDDDDooziiiiiocc...',
+  '..uccDDccuaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauDiiiicziiiouaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaacoooaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaciiiiDDiiiicaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaooocaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauoiiizciiiiDuaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauccDDccu..',
+  '..uccccuaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauDiiiicziiiouaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaacoooaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaciiiiDDiiiicaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaooocaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauoiiizciiiiDuaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauccccu..',
+  '..ccuuuuaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaucDDDDuDDDDcuaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaacoooaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauDDDDccDDDDuaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaooocaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaucDDDDuDDDDcuaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauuuucc..',
+  '.uccxxxxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauuuuuuuuuuuuuaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaacoooaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauuuuuuuuuuuuaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaooocaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauuuuuuuuuuuuuaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaxxxxccu.',
+  '.uuuxxxxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauuuuuuuuuuuuuaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaacoooaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauuuuuuuuuuuuaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaooocaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauuuuuuuuuuuuuaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaxxxxuuu.',
+  '.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauuuuuuuuuuuuuaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaacoooaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauuuuuuuuuuuuaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaooocaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauuuuuuuuuuuuuaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.',
+  '.DDDDDDDDDDDDDDccccccccccccccccccccccccccccccccccccccccccccccccccccuuuuuuuuuuuccccccccccccccccccccccccccccccccccccDoooccccccccccccccccccccccccccccccccccccuuuuuuuuuuuuccccccccccccccccccccccccccccccccccccoooDccccccccccccccccccccccccccccccccccccuuuuuuuuuuuccccccccccccccccccccccccccccccccccccccccccccccccccccDDDDDDDDDDDDDD.',
+  '.hhhhhhhhhhhhfffffffffffffffffDfffffffffffffffffffffffffffffffffffDuuuuuuuuuuucffffffffffffffffffffffffffffffffffffoooffffffffffffffffffffffffffffffffffffuuuuuuuuuuuuffffffffffffffffffffffffffffffffffffoooffffffffffffffffffffffffffffffffffffcuuuuuuuuuuuDfffffffffffffffffffffffffffffffffffDfffffffffffffffffhhhhhhhhhhhh.',
+  '.fhhhhhhhhffffffffffffffffffffDfffffffffffffffffffffffffffffffffffDuuuuuuuuuuucffffffffffffffffffffffffffffffffffffoooffffffffffffffffffffffffffffffffffffuuuuuuuuuuuuffffffffffffffffffffffffffffffffffffoooffffffffffffffffffffffffffffffffffffcuuuuuuuuuuuDfffffffffffffffffffffffffffffffffffDffffffffffffffffffffhhhhhhhhf.',
+  '.fhhhhhhffffffffffffffffffffffDfffffffffffffffffffffffffffffffffffDuuuuuuuuuuucffffffffffffffffffffffffffffffffffffoooffffffffffffffffffffffffffffffffffffuuuuuuuuuuuuffffffffffffffffffffffffffffffffffffoooffffffffffffffffffffffffffffffffffffcuuuuuuuuuuuDfffffffffffffffffffffffffffffffffffDffffffffffffffffffffffhhhhhhf.',
+  '.fhhhfffffffffffffffffffffffffDfffffffffffffffffffffffffffffffffffDuuuuuuuuuuucffffffffffffffffffffffffffffffffffffoooffffffffffffffffffffffffffffffffffffuuuuuuuuuuuuffffffffffffffffffffffffffffffffffffoooffffffffffffffffffffffffffffffffffffcuuuuuuuuuuuDfffffffffffffffffffffffffffffffffffDfffffffffffffffffffffffffhhhf.',
+  '.fffffffffffffffffffffffffffffDfffffffffffffffffffffffffffffffffffDuuuuuuuuuuucfffffffffffffffffffffffffffffffffffDoooffffffffffffffffffffffffffffffffffffuuuuuuuuuuuuffffffffffffffffffffffffffffffffffffoooDfffffffffffffffffffffffffffffffffffcuuuuuuuuuuuDfffffffffffffffffffffffffffffffffffDfffffffffffffffffffffffffffff.',
+  '..aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauuuuuuuuuuuuuaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaacoooaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauuuuuuuuuuuuaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaooocaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauuuuuuuuuuuuuaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa..',
+  '..ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccDoooccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccoooDcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc..',
+  '..ttttttttttttttttttttttttttttDtttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttoooottttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttooootttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttDtttttttttttttttttttttttttttt..',
+  '..otttttttttttttttttttttttttttDttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttto...tttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt...otttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttDttttttttttttttttttttttttttto..',
+  '..DtttttttttttttttttttttttttttDttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttto...tttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt...otttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttDtttttttttttttttttttttttttttD..',
+  '..cDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDoozzzozzzzzzzzzzozzzoDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDozzzozzzzzzzzzzozzzzoDDD...DDDozzzozzzzzzzzzzozzzoDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDozzzozzzzzzzzzzozzzoDDD...DDDozzzzozzzzzzzzzzozzzoDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDozzzozzzzzzzzzzozzzoDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDc..',
+  '..................................ttzooottttttttooottt.....................................tttoooztttttttzooottt.........tttooottttttttoooztt......................................ttzooottttttttooottt.........tttoooztttttttzooottt.....................................tttooottttttttoooztt..................................',
+  '..................................ttooDozttttttooDoztt.....................................ttzoDootttttttooDottt.........ttzoDozttttttzoDoott......................................ttooDozttttttzoDoztt.........tttoDootttttttooDoztt.....................................ttzoDoottttttzoDoott..................................',
+  '...................................tooDozttttttooDozt.......................................tzoDootttttttooDozt...........tooDoottttttzoDoot........................................tooDozttttttooDozt...........tzoDootttttttooDozt.......................................tzoDoottttttzoDoot...................................',
+  '....................................oooo........ooo...........................................oooo.......oooo...............ooo........ooo............................................ooo........ooo...............oooo.......oooo...........................................ooo........oooo....................................',
+];
 const WHEEL = ['..ggg..', '.gKKKg.', 'gKKlKKg', 'gKlllKg', 'gKKlKKg', '.gKKKg.', '..ggg..'];
 const WHEEL_B = ['..ggg..', '.gKlKg.', 'gKKlKKg', 'gllllKg', 'gKKlKKg', '.gKlKg.', '..ggg..'];
 
-function train(t: number) {
-  const g = blank(124, 44);
-  rect(g, 0, 6, 118, 29, 'k');
-  // muso arrotondato
-  for (let j = 0; j < 23; j++) rect(g, 118, 12 + j, Math.min(6, 1 + Math.floor(j / 2)), 1, 'k');
-  rect(g, 40, 3, 16, 1, 'g'); // pantografo
-  rect(g, 46, 0, 2, 3, 'g');
-  rect(g, 42, 4, 2, 2, 'g');
-  rect(g, 52, 4, 2, 2, 'g');
-  for (let i = 5; i < 104; i += 16) rect(g, i, 11, 11, 8, 'C');
-  rect(g, 110, 11, 10, 9, 'C'); // parabrezza
-  for (const x of [30, 78]) rect(g, x, 10, 1, 23, 'K'); // porte
-  rect(g, 0, 24, 122, 4, 'r');
-  rect(g, 118, 30, 4, 2, 'Y'); // faro
-  rect(g, 0, 35, 120, 2, 'K');
-  const w = Math.floor(t * 14) % 2 ? WHEEL : WHEEL_B;
-  for (const x of [10, 22, 92, 104]) paint(g, x, 37, w);
-  return toRows(g);
+function train() {
+  return TRAIN;
 }
 
 /** autobus urbano */
@@ -276,7 +317,7 @@ export const DEFS = {
   bench: (t: number) => bench(t),
   keyboard: () => keyboard(),
   board: (_t: number, step = 0) => board(step),
-  train: (t: number) => train(t),
+  train: () => train(),
   bus: (t: number) => bus(t),
   pigeon: (t: number, withLetter = 0) => pigeon(t, !!withLetter),
   plane: (t: number) => plane(t),

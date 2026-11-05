@@ -19,7 +19,6 @@
       (ora JPEG a bassa risoluzione); app per l'orologio ancora senza ricostruzione. Altre idee proposte dalla
       sessione della repo: linea di stazioni con il filtro della posizione credibile on/off, selettore "Per quando?"
       con ruote.
-- [ ] **Trenitardo — hero**: vedere come migliorarla, se serve (la lasciamo uguale all'app, scura anche col tema chiaro).
 - [ ] **Uva e Dintorni — pagina del lavoro**: spiegare il design del sito, ispirato al nuovo volantino di Aurora
       Mattei; parlare della funzione dei giorni (si vedono gli eventi live e le corti aperte); mostrare anche il
       totem, magari sia come video sia come iframe interattivo (o simile).
@@ -29,8 +28,6 @@
 - [ ] **Pagina sul lavoro alle ITT**: scuola zoomata in stile Google Earth, cosa faccio, competenze, ecc. Dove
       metterla (sezione in Chi sono oppure pagina nascosta raggiungibile solo da link) lo decidiamo quando ci
       arriviamo.
-- [ ] **Licenza font Ndot57**: la hero di Trenitardo usa il font Ndot57 (Nothing) copiato dalla repo; verificare
-      che sia ridistribuibile sul sito pubblico, altrimenti sostituirlo con un font a puntini libero.
 - [ ] **Essential Search**: è un altro progetto di Davide che andrà nel Lab; quando c'è la sua pagina, linkarla
       da Trenitardo (oggi è solo nominata nel testo, nella scheda "Anche da Telegram e dalla barra del PC").
 - [ ] **Lab — vista a costellazione**: oltre alla griglia di schede, una seconda vista selezionabile in cui i
@@ -47,6 +44,7 @@
 
 ## Fatto di recente
 
+- Trenitardo: hero "Sobria" (treno low poly e paesaggi, componenti React dell'app resi lato server) al posto del tabellone, anche nella card del Lab; galleria di tutte le scene (senza Sabbionara); sezioni "Arriva a" e routine con screenshot Roma Termini → Milano Centrale. Tolto il font Ndot57.
 - Navbar: il blur ora funziona su Chrome e Brave (la build teneva solo il prefisso -webkit-). Tolta la freccia ↗ dalle card del Lab.
 - Immagini ingrandite su telefono sistemate (prima l'immagine finiva in una colonna da 0 px).
 - Trenitardo: pulsante "Prova l'app" subito sotto il titolo, con il promemoria per installarla (iPhone e Android).

@@ -16,16 +16,17 @@ logo: ../../../assets/logos/trenitardo.svg
 summary: >
   Trenitardo ti dice dov'è il tuo treno adesso, di quanto è in ritardo e fra quanto arriva alla tua fermata, e
   ti avvisa mentre viaggi. Nasce dai dati pubblici di ViaggiaTreno, partito dalla linea Verona–Brennero, e
-  funziona per i treni di tutta Italia. È una web app installabile, un'app Android e un bot Telegram, tutti
+  funziona per i treni di tutta Italia. Può anche partire dalla destinazione ("Arriva a") e seguire da solo i
+  viaggi di tutti i giorni (routine). È una web app installabile, un'app Android e un bot Telegram, tutti
   alimentati dallo stesso servizio.
-highlights: [PWA installabile, app Android, bot Telegram, orologio e widget]
+highlights: [PWA installabile, app Android, bot Telegram, '"Arriva a" e routine', orologio e widget]
 briefShots:
   - src: ../../../assets/projects/trenitardo/01-home-mobile.jpg
-    alt: La home di Trenitardo con la card del treno che stai seguendo e la ricerca Trento → Verona
+    alt: La home di Trenitardo con l'aspetto Sobrio e la ricerca Trento → Verona Porta Nuova
   - src: ../../../assets/projects/trenitardo/04-treno-mobile.jpg
-    alt: La vista del treno 16697 Bolzano → Verona, con il tabellone a puntini, il conto alla rovescia e le fermate
+    alt: La vista del treno 16679 Bolzano → Verona, in transito dopo Trento, con la hero Sobria, l'ultimo rilevamento e le fermate
   - src: ../../../assets/projects/trenitardo/03-risultati-mobile.jpg
-    alt: I cinque prossimi treni da Trento a Verona Porta Nuova, con il ritardo di ognuno
+    alt: I cinque prossimi treni da Trento verso Verona Porta Nuova, con il ritardo di ognuno
 ---
 
 import Shots from '../../../components/Shots.astro';
@@ -36,6 +37,11 @@ import shotQuando from '../../../assets/projects/trenitardo/02-per-quando-mobile
 import shotDomani from '../../../assets/projects/trenitardo/05-risultati-domani-mobile.jpg';
 import shotChiaro from '../../../assets/projects/trenitardo/08-treno-chiaro-mobile.jpg';
 import shotProgrammato from '../../../assets/projects/trenitardo/06-treno-programmato-mobile.jpg';
+import shotArriva from '../../../assets/projects/trenitardo/09-arriva-a-mobile.jpg';
+import shotRoutineArriva from '../../../assets/projects/trenitardo/10-routine-arriva-a-mobile.jpg';
+import shotSobrio from '../../../assets/projects/trenitardo/11-treno-sobrio-mobile.jpg';
+import shotRoutineTreno from '../../../assets/projects/trenitardo/12-routine-treno-mobile.jpg';
+import SoberGallery from '../../../components/SoberGallery.astro';
 
 ## Il problema
 
@@ -62,21 +68,22 @@ lavorando.
 <Shots
   items={[
     { src: shotQuando, alt: "Il selettore del giorno e dell'ora, con Domani scelto e le ruote di ore e minuti", caption: 'Il selettore "Quando"' },
-    { src: shotDomani, alt: 'I treni di domani alle 08:00 da Trento a Verona Porta Nuova, con gli orari programmati', caption: 'I treni di domani, alle 08:00' },
+    { src: shotDomani, alt: 'I treni di domani dalle 06:00 da Trento a Verona Porta Nuova, con gli orari programmati', caption: 'I treni di domani, dalle 06:00' },
   ]}
 />
 
 Arrivano i prossimi cinque treni. Ognuno dice dove va, a che ora arriva da te e in che stato è: ancora fermo,
 in viaggio, già arrivato.
 
-Tocchi un treno e compare il "tabellone": un riquadro scuro, a puntini come un display LED, con la fermata
-dove si trova, il conto alla rovescia fino a te e il ritardo in rosso o in verde. Sotto, la lista delle
+Tocchi un treno e in cima compare la hero: il treno sui binari col paesaggio delle fermate che sta
+attraversando, la fermata dove si trova, il conto alla rovescia fino a te e il ritardo in rosso o in verde.
+(Con l'aspetto classico, al posto della hero c'è un "tabellone" scuro a puntini, come un display LED.) Sotto, la lista delle
 fermate con un pallino rosso che si sposta fra una stazione e l'altra. La fermata dove scendi è cerchiata di
 bianco.
 
 <Shots
   items={[
-    { src: shotChiaro, alt: 'La vista del treno con il tema chiaro: interfaccia bianca ma tabellone sempre scuro', caption: 'Col tema chiaro il tabellone resta scuro' },
+    { src: shotChiaro, alt: 'Il Frecciarossa 8519 fermo a Trento con il tema chiaro: cielo azzurro, Duomo e Buonconsiglio dietro il treno', caption: 'Col tema chiaro: un Frecciarossa fermo a Trento' },
   ]}
 />
 
@@ -90,7 +97,7 @@ parte.
 
 <Shots
   items={[
-    { src: shotProgrammato, alt: 'Un treno di domani: al posto del ritardo il tabellone dice "Parte, domani, 08:10"', caption: 'Un treno di domani: il tabellone dice quando parte' },
+    { src: shotProgrammato, alt: "Il 16653 di domani: fermo in banchina davanti alla stazione, la hero dice «Parte domani, 06:09» e l'arrivo a Verona alle 07:32", caption: 'Un treno di domani: fermo in stazione, la hero dice quando parte' },
   ]}
 />
 
@@ -98,6 +105,33 @@ Quello che ancora non c'è: le notifiche push dell'app Android a telefono "a rip
 finché il servizio dell'app resta attivo).
 
 ## Cosa sa fare
+
+### "Arriva a": dimmi solo dove vuoi andare
+
+Non sempre sai da che stazione partire. Nella scheda "Arriva a" scrivi solo la destinazione, per esempio Milano
+Centrale. L'app guarda dove sei, trova la stazione più vicina e ti propone i treni che puoi prendere davvero:
+quando uscire di casa, a piedi o in macchina, e se ce la fai. Puoi dire "parto alle" oppure "arrivo entro".
+
+<Shots
+  items={[
+    { src: shotArriva, alt: "La scheda Arriva a: destinazione Milano Centrale, partenza da Roma Termini e i treni con l'ora a cui uscire", caption: 'Da Roma Termini a Milano Centrale: a che ora uscire e se ce la fai' },
+  ]}
+/>
+
+### Le routine
+
+Lo stesso viaggio tutti i giorni? Una routine lo segue da sola. Dalla vista di un treno scegli andata o
+ritorno e i giorni della settimana: mezz'ora prima della partenza il treno viene seguito in automatico, con
+le notifiche di sempre. Una routine "Arriva a" fa di più: ogni giorno ricalcola il treno migliore da dove
+parti e ti avvisa quando è ora di uscire. Si possono mettere in pausa, saltare un giorno, riordinare e
+gestire anche i viaggi con un cambio.
+
+<Shots
+  items={[
+    { src: shotRoutineTreno, alt: 'Aggiungi alla routine: Roma Termini → Milano Centrale alle 13:50, andata o ritorno e i giorni della settimana', caption: 'Un treno in routine: i giorni e la direzione' },
+    { src: shotRoutineArriva, alt: 'Routine Arriva a verso Milano Centrale: da dove parto, a piedi o in macchina, orario e giorni', caption: 'Una routine "Arriva a": ogni giorno il treno migliore' },
+  ]}
+/>
 
 ### Seguire un treno fino alla tua fermata
 
@@ -143,6 +177,27 @@ che mostra il treno seguito con minuti e stazione.
 
 Un [bot Telegram](https://t.me/ritardotrenibot) (comando `/t` per i treni, `/b` per i bus di Trento) e un plugin per la barra di ricerca
 Essential Search, che risponde alla stessa domanda senza aprire niente.
+
+## L'aspetto "Sobrio"
+
+Oltre al tabellone a puntini, l'app ha un secondo aspetto: "Sobrio". Font IBM Plex, e al posto del tabellone una
+hero disegnata: il treno sui binari (regionale o alta velocità, a seconda del treno) e dietro un paesaggio
+italiano low poly che scorre solo quando il treno è in viaggio. Il paesaggio non è a caso: viene dalle fermate
+che il treno sta attraversando, quindi da Roma passa il Colosseo, a Trento il Duomo e il MUSE, sulle linee di
+montagna le Dolomiti. Di notte, col tema scuro, il treno viaggia coi finestrini accesi. È la hero che vedi in cima
+a questa pagina.
+
+<Shots
+  items={[
+    { src: shotSobrio, alt: 'Il Frecciarossa 9638 fermo a Roma Termini nella hero Sobria, col Colosseo dietro e i finestrini accesi', caption: 'Il 9638 a Roma Termini, col Colosseo' },
+  ]}
+/>
+
+Le scene sono disegnate a mano in SVG e si accostano in qualsiasi ordine: ognuna viene allungata col proprio bordo
+specchiato, e dove due scene si toccano c'è una "giunzione" in primo piano (una galleria, un viadotto, un
+casello) che copre il punto di contatto.
+
+<SoberGallery />
 
 ## Sulla Glyph e nella home
 

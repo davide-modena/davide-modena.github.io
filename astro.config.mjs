@@ -2,9 +2,11 @@
 import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
 
+import react from '@astrojs/react';
+
 export default defineConfig({
   site: 'https://davide-modena.github.io',
-  integrations: [mdx()],
+  integrations: [mdx(), react()],
   i18n: {
     locales: ['it', 'en'],
     defaultLocale: 'it',

@@ -1,0 +1,276 @@
+---
+// La hero "Sobria" dell'app Trenitardo: il treno low poly sui binari e il paesaggio italiano che scorre dietro
+// quando è in viaggio. Disegni e stile sono quelli dell'app (app/src/components/sober/, app/src/index.css);
+// i dati seguono il viaggio finto Trento → Verona Porta Nuova (src/scripts/trenSim.ts).
+import '@fontsource/ibm-plex-sans/700.css';
+import '@fontsource/ibm-plex-mono/700.css';
+import SoberHero from './sober/SoberHero.jsx';
+import { STOPS, DEST, TRAIN_NUMBER } from '../scripts/trenSim';
+
+interface Props {
+  /** versione per la copertina delle card: senza didascalia, bordi e angoli */
+  bare?: boolean;
+}
+const { bare = false } = Astro.props;
+const testo = { k: 'Fermo a', dove: STOPS[0].name, arrivo: DEST.short, eta: "1h 00'", ritardo: '+5 min' };
+---
+
+<figure
+  class:list={['tsh', { bare }]}
+  data-train-sober
+  role="img"
+  aria-label="La hero di Trenitardo: un treno regionale da Trento a Verona Porta Nuova, con il paesaggio che scorre, i minuti all'arrivo e il ritardo"
+>
+  <div class="stage" data-stage>
+    <SoberHero fermate={STOPS.map((s) => s.name)} seed={TRAIN_NUMBER} id={bare ? 'shc' : 'shp'} testo={testo} />
+  </div>
+  {!bare && <figcaption class="mono">Ricostruzione della hero "Sobria": segue un viaggio finto Trento → Verona.</figcaption>}
+</figure>
+
+<style>
+  .tsh {
+    margin: 0;
+    width: 100%;
+  }
+  /* nella pagina: la hero a misura di telefono (420 px), ingrandita per riempire il riquadro */
+  .tsh:not(.bare) {
+    padding: clamp(20px, 4vw, 44px) clamp(16px, 4vw, 44px) 14px;
+    background: var(--bg-2);
+  }
+  .tsh:not(.bare) .stage {
+    width: min(100%, 680px);
+    margin-inline: auto;
+    aspect-ratio: 420 / 176;
+  }
+  .tsh:not(.bare) .stage :global(.shero) {
+    width: 420px;
+    transform-origin: 0 0;
+    transform: scale(var(--k, 1));
+  }
+  .tsh :global(.shero) {
+    --cielo: linear-gradient(180deg, #0f1a2b 0%, #1a2638 65%, #232c38 100%);
+    --ink-h: #f2f4f6;
+    --k-h: #a5afb8;
+    --binario: #8c939a;
+    --traversa: #4c4640;
+    --red: #d71921;
+    --green: #28a745;
+    position: relative;
+    height: 176px;
+    border-radius: 14px;
+    overflow: hidden;
+    background: var(--cielo);
+    border: 1px solid var(--line-2);
+    font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  }
+  :global(:root[data-theme='light']) .tsh :global(.shero) {
+    --cielo: linear-gradient(180deg, #cfe6f5 0%, #e9f3fa 65%, #f7fafc 100%);
+    --ink-h: #1b2329;
+    --k-h: #4b5761;
+    --binario: #5b6168;
+    --traversa: #9a8f84;
+  }
+  .tsh.bare :global(.shero) {
+    border: 0;
+    border-radius: 0;
+  }
+  .tsh :global(.shero-paesaggio) {
+    position: absolute;
+    bottom: 14px;
+    left: 0;
+    display: flex;
+    will-change: transform;
+    filter: brightness(0.48) saturate(0.75) hue-rotate(-8deg);
+  }
+  :global(:root[data-theme='light']) .tsh :global(.shero-paesaggio) {
+    filter: none;
+  }
+  .tsh :global(.shero-paesaggio svg) {
+    flex: none;
+    display: block;
+    overflow: visible;
+    max-width: none;
+  }
+  .tsh :global(.shero.in-moto .shero-paesaggio) {
+    animation: shero-scorri 22s linear infinite;
+  }
+  @keyframes shero-scorri {
+    to {
+      transform: translateX(var(--giro, -1920px));
+    }
+  }
+  .tsh :global(.shero-binari) {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 6px;
+    height: 9px;
+    overflow: hidden;
+  }
+  .tsh :global(.shero-binari::before) {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 2px;
+    background: var(--binario);
+    z-index: 1;
+  }
+  .tsh :global(.shero-binari::after) {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: calc(100% + 140px);
+    height: 6px;
+    background: repeating-linear-gradient(90deg, var(--traversa) 0 5px, transparent 5px 14px);
+    will-change: transform;
+  }
+  .tsh :global(.shero.in-moto .shero-binari::after) {
+    animation: shero-traverse 1s linear infinite;
+  }
+  @keyframes shero-traverse {
+    to {
+      transform: translateX(-140px);
+    }
+  }
+  .tsh :global(.shero-treno) {
+    overflow: visible;
+    position: absolute;
+    bottom: 13px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(82%, 340px);
+    height: auto;
+    max-width: none;
+  }
+  .tsh :global(.shero.in-moto .shero-treno) {
+    animation: shero-dondolo 1.4s ease-in-out infinite;
+  }
+  @keyframes shero-dondolo {
+    50% {
+      transform: translate(-50%, -0.6px);
+    }
+  }
+  /* di notte (tema scuro) il treno è al buio coi finestrini accesi */
+  .tsh :global(.shero-treno .giorno) {
+    display: none;
+  }
+  :global(:root[data-theme='light']) .tsh :global(.shero-treno .giorno) {
+    display: inline;
+  }
+  :global(:root[data-theme='light']) .tsh :global(.shero-treno .notte) {
+    display: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tsh :global(.shero *),
+    .tsh :global(.shero-binari::after) {
+      animation: none !important;
+    }
+  }
+  .tsh :global(.shero-testo) {
+    position: absolute;
+    top: 10px;
+    left: 12px;
+    right: 12px;
+    display: flex;
+    gap: 12px;
+    z-index: 2;
+  }
+  .tsh :global(.shero-testo .sx) {
+    flex: 1;
+    min-width: 0;
+  }
+  .tsh :global(.shero-testo .dx) {
+    flex: none;
+    max-width: 50%;
+    text-align: right;
+  }
+  .tsh :global(.shero .k) {
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--k-h);
+  }
+  .tsh :global(.shero .dove) {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--ink-h);
+    line-height: 1.2;
+  }
+  .tsh :global(.shero .eta) {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 21px;
+    font-weight: 700;
+    color: var(--red);
+    line-height: 1.15;
+    white-space: nowrap;
+  }
+  .tsh :global(.shero-ritardo) {
+    position: absolute;
+    top: 58px;
+    right: 12px;
+    z-index: 2;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 12.5px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.45);
+  }
+  :global(:root[data-theme='light']) .tsh :global(.shero-ritardo) {
+    background: rgba(255, 255, 255, 0.75);
+  }
+  .tsh :global(.shero-ritardo.late) {
+    color: var(--red);
+  }
+  .tsh :global(.shero-ritardo.ontime) {
+    color: var(--green);
+  }
+  figcaption {
+    margin: 14px auto 0;
+    width: min(100%, 680px);
+    font-size: 12px;
+    color: var(--fg-3);
+  }
+</style>
+
+<script>
+  import { state, STOPS } from '../scripts/trenSim';
+  import { reducedMotion } from '../scripts/glyph';
+
+  document.querySelectorAll<HTMLElement>('[data-train-sober]').forEach((root) => {
+    const hero = root.querySelector<HTMLElement>('[data-shero]')!;
+    const k = root.querySelector<HTMLElement>('[data-k]')!;
+    const dove = root.querySelector<HTMLElement>('[data-dove]')!;
+    const eta = root.querySelector<HTMLElement>('[data-eta]')!;
+    const rit = root.querySelector<HTMLElement>('[data-ritardo]')!;
+    let timer = 0;
+    // la hero è larga 420 px come sul telefono: nella pagina la si ingrandisce fino al riquadro
+    if (!root.classList.contains('bare')) {
+      const stage = root.querySelector<HTMLElement>('[data-stage]')!;
+      new ResizeObserver(() => stage.style.setProperty('--k', String(stage.clientWidth / 420))).observe(stage);
+    }
+
+    function render() {
+      const s = state(performance.now());
+      hero.classList.toggle('in-moto', s.moving);
+      k.textContent = s.moving ? 'In transito · dopo' : 'Fermo a';
+      dove.textContent = STOPS[s.idx].name;
+      // come l'app: "24'" o "1h 05'"
+      eta.textContent = s.eta >= 60 ? `${Math.floor(s.eta / 60)}h ${String(s.eta % 60).padStart(2, '0')}'` : `${s.eta}'`;
+      rit.textContent = s.delay > 0 ? `+${s.delay} min` : 'in orario';
+      rit.classList.toggle('late', s.delay > 0);
+      rit.classList.toggle('ontime', s.delay <= 0);
+    }
+
+    render();
+    if (reducedMotion()) return;
+    new IntersectionObserver((e) => {
+      window.clearInterval(timer);
+      timer = e[0].isIntersecting ? window.setInterval(render, 250) : 0;
+    }).observe(root);
+  });
+</script>
