@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://davide-modena.github.io/sitemap-index.xml

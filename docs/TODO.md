@@ -17,8 +17,6 @@
 - [ ] **Chrome su Android — scatti**: fatto un fix (altezza stabile al posto di `innerHeight`); da verificare su un
       telefono vero.
 - [ ] **Hevy Companion — mockup**: sostituire la foto del telefono con una che scatto io (mockup della Glyph).
-- [ ] **Form contatti**: è nascosto (`FORM_ENABLED = false` in `src/views/ContactView.astro`). Da ripristinare
-      con Netlify Forms o Web3Forms/Formspree.
 - [ ] **Pagine dei progetti Lab**: riscriverle col nuovo prompt (`docs/project-brief-prompt.md`), una repo alla
       volta: Trenitardo (fatto in parte), Bustardo, Nothing Home, ecc.
 - [ ] **Trenitardo — grafica**: hero, notifica, Glyph Toy e widget sono ricostruiti in HTML e seguono lo stesso
@@ -52,6 +50,7 @@
 
 ## Fatto di recente
 
+- Form contatti riattivato con Web3Forms (arriva per email), statistiche con Umami senza cookie (eventi sulle CTA e sui messaggi inviati), Google Search Console con sitemap e robots.txt. Chiavi in `src/data/services.ts`.
 - Trenitardo: hero "Sobria" (treno low poly e paesaggi, componenti React dell'app resi lato server) al posto del tabellone, anche nella card del Lab; galleria di tutte le scene (senza Sabbionara); sezioni "Arriva a" e routine con screenshot Roma Termini → Milano Centrale. Tolto il font Ndot57.
 - Navbar: il blur ora funziona su Chrome e Brave (la build teneva solo il prefisso -webkit-). Tolta la freccia ↗ dalle card del Lab.
 - Immagini ingrandite su telefono sistemate (prima l'immagine finiva in una colonna da 0 px).
