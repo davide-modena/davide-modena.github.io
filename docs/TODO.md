@@ -2,6 +2,10 @@
 
 ## Da fare
 
+- [ ] **Lab — progetti nascosti finché non sono completi**: oggi nel Lab ci sono solo Trenitardo e Hevy Companion.
+      Gli altri hanno `hidden: true` nell'intestazione e si rimettono uno alla volta, quando la pagina è finita
+      (col prompt `docs/project-brief-prompt.md`): Bustardo, DSU Pad, ESP32 BLE Displays, ESP32 Traffic Light,
+      GraphNote, Mentimeter Lite, Nothing Home, WaySafe.
 - [ ] **CTA per provare le app** (`try` nell'intestazione del progetto): c'è solo per Trenitardo (PWA con promemoria
       di installazione). Per ogni app chiedere se c'è qualcosa da provare o scaricare: sito/PWA, APK, GitHub.
       Hevy Companion: il campo `repo` punta a una repo privata (il link "codice" porta a 404): togliere finché non è
