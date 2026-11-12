@@ -4,6 +4,7 @@ import SectionHead from '../components/SectionHead.astro';
 import { useTranslations, path, otherLang } from '../i18n/utils';
 import { contact } from '../data/profile';
 import type { Lang } from '../i18n/ui';
+import { WEB3FORMS_ACCESS_KEY } from '../data/services';
 
 interface Props {
   lang: Lang;
@@ -11,9 +12,8 @@ interface Props {
 const { lang } = Astro.props;
 const t = useTranslations(lang);
 const topics = t('contact.form.topics').split('|');
-// TODO form nascosto finché il sito è su GitHub Pages (Netlify Forms lì non funziona):
-// da riattivare passando a Netlify o collegando Web3Forms/Formspree.
-const FORM_ENABLED = false;
+// il form invia a Web3Forms, che inoltra il messaggio per email: senza chiave resta nascosto
+const FORM_ENABLED = Boolean(WEB3FORMS_ACCESS_KEY);
 const steps = t('contact.steps')
   .split(';')
   .map((s) => s.split('|'));
@@ -31,19 +31,19 @@ const steps = t('contact.steps')
   <section class="section list">
     <span class="cross l"></span><span class="cross r"></span>
     <div class:list={['frame layout', { 'no-form': !FORM_ENABLED }]}>
-      <!-- Netlify Forms: il form viene rilevato al deploy grazie a data-netlify -->
       {FORM_ENABLED && (<form
-        name="contatti"
         method="POST"
-        data-netlify="true"
-        netlify-honeypot="bot-field"
+        action="https://api.web3forms.com/submit"
         class="form"
         data-reveal
         data-ok={t('contact.form.ok')}
         data-sending={t('contact.form.sending')}
       >
-        <input type="hidden" name="form-name" value="contatti" />
-        <p class="hp" aria-hidden="true"><label>bot <input name="bot-field" tabindex="-1" autocomplete="off" /></label></p>
+        <input type="hidden" name="access_key" value={WEB3FORMS_ACCESS_KEY} />
+        <input type="hidden" name="subject" value="Nuovo messaggio dal portfolio" />
+        <input type="hidden" name="from_name" value="Portfolio" />
+        <!-- trappola per i bot: un campo invisibile che le persone non spuntano -->
+        <p class="hp" aria-hidden="true"><label>bot <input type="checkbox" name="botcheck" tabindex="-1" autocomplete="off" /></label></p>
 
         <div class="row2">
           <label class="field">
@@ -141,7 +141,7 @@ const steps = t('contact.steps')
     setInterval(tick, 10000);
   }
 
-  // invio senza ricaricare la pagina (Netlify accetta un POST urlencoded su "/")
+  // invio senza ricaricare la pagina: Web3Forms risponde in JSON con { success }
   const form = document.querySelector<HTMLFormElement>('form.form');
   if (form) initForm(form);
 
@@ -156,9 +156,11 @@ const steps = t('contact.steps')
     button.textContent = form.dataset.sending!;
     error.hidden = true;
     try {
-      const body = new URLSearchParams(new FormData(form) as unknown as Record<string, string>).toString();
-      const res = await fetch('/', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body });
-      if (!res.ok) throw new Error(String(res.status));
+      const data = new FormData(form);
+      const res = await fetch(form.action, { method: 'POST', headers: { Accept: 'application/json' }, body: data });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || !json.success) throw new Error(json.message ?? String(res.status));
+      (window as any).umami?.track('contatto', { tipo: String(data.get('tipo') ?? '') });
       form.classList.add('sent');
       result.textContent = `✓ ${form.dataset.ok}`;
       result.hidden = false;

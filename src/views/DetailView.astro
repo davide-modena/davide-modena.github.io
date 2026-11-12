@@ -78,7 +78,7 @@ const meta: { label: string; value: string; href?: string }[] =
         {
           cta && (
             <div class="try" data-reveal style="--d:.14s" data-cta-main>
-              <a href={cta.url} class="btn btn-primary" target="_blank" rel="noopener">
+              <a href={cta.url} class="btn btn-primary" target="_blank" rel="noopener" data-umami-event="cta" data-umami-event-progetto={slug} data-umami-event-dove="titolo">
                 {cta.label} <span class="arrow">↗</span>
               </a>
               <span class="try-host mono">{new URL(cta.url).host.replace(/^www\./, '')}</span>
@@ -116,7 +116,7 @@ const meta: { label: string; value: string; href?: string }[] =
       <div class="visual" data-reveal style="--d:.2s">
         {
           kind === 'works' ? (
-            <a href={d.url} class="stage-box" data-scrub target="_blank" rel="noopener" aria-label={`${t('cta.visit')}: ${d.domain}`}>
+            <a href={d.url} class="stage-box" data-scrub target="_blank" rel="noopener" data-umami-event="cta" data-umami-event-progetto={slug} data-umami-event-dove="anteprima" aria-label={`${t('cta.visit')}: ${d.domain}`}>
               <Stage shot={d.shot} shotMobile={d.shotMobile} domain={d.domain} title={d.title} eager />
             </a>
           ) : (
@@ -170,7 +170,7 @@ const meta: { label: string; value: string; href?: string }[] =
 
     {
       cta && (
-        <a href={cta.url} class="cta-float btn btn-primary" target="_blank" rel="noopener" data-cta-float aria-hidden="true" tabindex="-1">
+        <a href={cta.url} class="cta-float btn btn-primary" target="_blank" rel="noopener" data-cta-float aria-hidden="true" tabindex="-1" data-umami-event="cta" data-umami-event-progetto={slug} data-umami-event-dove="fluttuante">
           {cta.label} <span class="arrow">↗</span>
         </a>
       )
