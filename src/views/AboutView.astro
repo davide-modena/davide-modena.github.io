@@ -7,6 +7,9 @@ import { ittCopy } from '../data/itt';
 import { experience, education, skills, offline, languages } from '../data/profile';
 import type { Lang } from '../i18n/ui';
 
+// link alla pagina sulle ITT nascosto per ora (la pagina resta online, raggiungibile solo dall'indirizzo)
+const SHOW_ITT_PAGE = false;
+
 interface Props {
   lang: Lang;
 }
@@ -48,7 +51,7 @@ const bar = (pct: number) => '█'.repeat(Math.round(pct / 10)) + '░'.repeat(1
                 <h3>{j.role[lang]}</h3>
                 <p class="org mono">{j.org}</p>
                 <p class="muted">{j.text[lang]}</p>
-                {j.org.startsWith('ITT') && j.to === undefined && (
+                {SHOW_ITT_PAGE && j.org.startsWith('ITT') && j.to === undefined && (
                   <p class="more mono">
                     <a href={path('about', lang, 'itt')}>{ittCopy.more[lang]}</a>
                   </p>

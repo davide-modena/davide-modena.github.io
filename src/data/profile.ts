@@ -24,8 +24,8 @@ export const experience: Job[] = [
     org: 'ITT Buonarroti, Trento',
     role: { it: 'Docente ITP di informatica', en: 'Computer science lab teacher' },
     text: {
-      it: 'Affianco classi dal primo al quinto anno nei laboratori di informatica e TPSIT: Python, Java, web (HTML, CSS, JavaScript, PHP), thread e socket.',
-      en: 'I teach computer science and systems labs from year one to year five: Python, Java, web (HTML, CSS, JavaScript, PHP), threads and sockets.',
+      it: 'Insegno materie informatiche in laboratorio, a classi delle superiori dal primo al quinto anno: programmazione in Python, Java e C, sviluppo web (HTML, CSS, JavaScript, PHP), e poi thread, socket e servlet. In generale, tutto quello che serve per passare dalle basi a un software che funziona davvero.',
+      en: 'I teach computer science in the lab to high school classes from year one to year five: programming in Python, Java and C, web development (HTML, CSS, JavaScript, PHP), then threads, sockets and servlets. In short, everything it takes to go from the basics to software that actually works.',
     },
     tags: ['Java', 'Python', 'PHP'],
   },

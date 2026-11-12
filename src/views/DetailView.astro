@@ -29,6 +29,15 @@ const briefFull = await Promise.all(
   (d.briefShots ?? []).map((s: { src: ImageMetadata }) => getImage({ src: s.src, width: Math.min(s.src.width, 1400), format: 'webp', quality: 88 })),
 );
 const sectionName = kind === 'works' ? t('section.work') : t('section.lab');
+// invito ad aprire il progetto: il sito per i lavori, l'app (o la versione online) per il Lab
+const cta: { url: string; label: string; install: boolean } | null =
+  kind === 'works'
+    ? { url: d.url, label: t('cta.visit'), install: false }
+    : d.try
+      ? { url: d.try.url, label: d.try.label ?? t('cta.try'), install: d.try.install }
+      : d.live
+        ? { url: d.live, label: t('cta.try'), install: false }
+        : null;
 
 const meta: { label: string; value: string; href?: string }[] =
   kind === 'works'
@@ -67,13 +76,13 @@ const meta: { label: string; value: string; href?: string }[] =
         <p class="lead" data-reveal style="--d:.08s">{kind === 'works' ? d.summary : d.tagline}</p>
         {entry.fallback && <p class="fallback mono" data-reveal>{t('lang.fallback')}</p>}
         {
-          d.try && (
-            <div class="try" data-reveal style="--d:.14s">
-              <a href={d.try.url} class="btn btn-primary" target="_blank" rel="noopener">
-                {d.try.label ?? t('cta.try')} <span class="arrow">↗</span>
+          cta && (
+            <div class="try" data-reveal style="--d:.14s" data-cta-main>
+              <a href={cta.url} class="btn btn-primary" target="_blank" rel="noopener">
+                {cta.label} <span class="arrow">↗</span>
               </a>
-              <span class="try-host mono">{new URL(d.try.url).host}</span>
-              {d.try.install && (
+              <span class="try-host mono">{new URL(cta.url).host.replace(/^www\./, '')}</span>
+              {cta.install && (
                 <p class="try-install mono">
                   {t('cta.install')}
                   <span>{t('cta.ios')}</span>
@@ -160,6 +169,14 @@ const meta: { label: string; value: string; href?: string }[] =
     </div>
 
     {
+      cta && (
+        <a href={cta.url} class="cta-float btn btn-primary" target="_blank" rel="noopener" data-cta-float aria-hidden="true" tabindex="-1">
+          {cta.label} <span class="arrow">↗</span>
+        </a>
+      )
+    }
+
+    {
       next && next.slug !== slug && (
         <a href={path(route, lang, next.slug)} class="next" data-nav-item>
           <div class="frame next-inner">
@@ -211,6 +228,30 @@ const meta: { label: string; value: string; href?: string }[] =
     align-items: center;
     gap: 12px 16px;
     margin-top: 32px;
+  }
+  /* la stessa CTA, fluttuante in basso a destra quando quella in alto è uscita dallo schermo */
+  .cta-float {
+    position: fixed;
+    right: clamp(16px, 3vw, 32px);
+    bottom: calc(var(--status-h) + clamp(16px, 3vw, 28px));
+    z-index: 55;
+    box-shadow: 0 10px 30px rgb(0 0 0 / 0.35);
+    opacity: 0;
+    translate: 0 12px;
+    pointer-events: none;
+    transition:
+      opacity 0.3s var(--ease),
+      translate 0.3s var(--ease);
+  }
+  .cta-float.show {
+    opacity: 1;
+    translate: 0 0;
+    pointer-events: auto;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cta-float {
+      transition: none;
+    }
   }
   .try-host {
     font-size: 12.5px;
@@ -382,3 +423,30 @@ const meta: { label: string; value: string; href?: string }[] =
     }
   }
 </style>
+
+<script>
+  // la CTA fluttuante compare quando quella sotto il titolo è uscita dallo schermo (verso l'alto)
+  // e sparisce in fondo, sopra il "prossimo progetto"
+  const main = document.querySelector<HTMLElement>('[data-cta-main]');
+  const float = document.querySelector<HTMLElement>('[data-cta-float]');
+  const next = document.querySelector<HTMLElement>('.next');
+  if (main && float) {
+    let passed = false;
+    let atEnd = false;
+    const sync = () => {
+      const on = passed && !atEnd;
+      float.classList.toggle('show', on);
+      float.setAttribute('aria-hidden', String(!on));
+      float.tabIndex = on ? 0 : -1;
+    };
+    new IntersectionObserver(([e]) => {
+      passed = !e.isIntersecting && e.boundingClientRect.top < 0;
+      sync();
+    }).observe(main);
+    if (next)
+      new IntersectionObserver(([e]) => {
+        atEnd = e.isIntersecting;
+        sync();
+      }).observe(next);
+  }
+</script>
