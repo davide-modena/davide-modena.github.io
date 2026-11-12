@@ -2,6 +2,10 @@
 
 ## Da fare
 
+- [ ] **Lab — la fabbrica (in sospeso)**: hero del Lab con nastro trasportatore isometrico, una scatola per progetto,
+      operai in pixel art e la scenetta della scatola che cade. Prototipo solo in locale, non committato:
+      `src/components/Factory.astro` (inserito in `src/views/LabIndexView.astro`) e `src/pages/prova-fabbrica.astro`.
+      Da decidere: mini-me che ci passa davanti, etichette piccole su telefono, campo per i pezzi specifici di un progetto.
 - [ ] **Lab — progetti nascosti finché non sono completi**: oggi nel Lab ci sono solo Trenitardo e Hevy Companion.
       Gli altri hanno `hidden: true` nell'intestazione e si rimettono uno alla volta, quando la pagina è finita
       (col prompt `docs/project-brief-prompt.md`): Bustardo, DSU Pad, ESP32 BLE Displays, ESP32 Traffic Light,

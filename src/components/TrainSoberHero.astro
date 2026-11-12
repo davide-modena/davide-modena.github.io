@@ -70,7 +70,10 @@ const testo = { k: 'Fermo a', dove: STOPS[0].name, arrivo: DEST.short, eta: "1h 
     --binario: #5b6168;
     --traversa: #9a8f84;
   }
+  /* nella card del Lab: stessa proporzione delle altre copertine (16:9), il cielo si allunga */
   .tsh.bare :global(.shero) {
+    height: auto;
+    aspect-ratio: 16 / 9;
     border: 0;
     border-radius: 0;
   }

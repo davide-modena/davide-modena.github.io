@@ -11,6 +11,10 @@ interface Props {
 }
 const { entry, href, index } = Astro.props;
 const d = entry.data;
+// il simbolo senza fondo (logos/<nome>-mark.svg), se c'è: va su un riquadro semitrasparente e sfocato
+const marks = import.meta.glob<{ default: ImageMetadata }>('../assets/logos/*-mark.svg', { eager: true });
+const name = d.logo?.src.split('/').pop()?.split('.')[0];
+const mark = Object.entries(marks).find(([k]) => k.endsWith(`/${name}-mark.svg`))?.[1].default;
 ---
 
 <a href={href} class="lab-card" data-nav-item data-kind={d.kind} data-reveal style={`--d:${(index % 3) * 0.08}s`}>
@@ -18,12 +22,20 @@ const d = entry.data;
     d.visual === 'glyph-strips' ? (
       <div class="cover-box">
         <GlyphStrips card />
-        {d.logo && <img class="logo" src={d.logo.src} alt="" width="44" height="44" />}
+        {mark ? (
+          <span class="logo glass"><img src={mark.src} alt="" width="44" height="44" /></span>
+        ) : (
+          d.logo && <img class="logo" src={d.logo.src} alt="" width="44" height="44" />
+        )}
       </div>
     ) : d.visual === 'train-hero' ? (
       <div class="cover-box">
         <TrainHero bare />
-        {d.logo && <img class="logo" src={d.logo.src} alt="" width="44" height="44" />}
+        {mark ? (
+          <span class="logo glass"><img src={mark.src} alt="" width="44" height="44" /></span>
+        ) : (
+          d.logo && <img class="logo" src={d.logo.src} alt="" width="44" height="44" />
+        )}
       </div>
     ) : (
       <DotCover seed={entry.slug} kind={d.kind} glyph={d.glyph} logo={d.logo?.src} />
@@ -74,6 +86,19 @@ const d = entry.data;
     height: 44px;
     border-radius: 11px;
     box-shadow: 0 0 0 1px rgb(255 255 255 / 0.18), 0 6px 18px rgb(0 0 0 / 0.5);
+  }
+  /* fondo nero semitrasparente e sfocato: quello che c'è dietro (il treno) si intravede */
+  .logo.glass {
+    display: block;
+    overflow: hidden;
+    background: rgb(10 10 10 / 0.62);
+    backdrop-filter: blur(8px);
+  }
+  .logo.glass img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
   }
   .body {
     display: flex;
