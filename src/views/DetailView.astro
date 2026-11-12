@@ -425,28 +425,15 @@ const meta: { label: string; value: string; href?: string }[] =
 </style>
 
 <script>
-  // la CTA fluttuante compare quando quella sotto il titolo è uscita dallo schermo (verso l'alto)
-  // e sparisce in fondo, sopra il "prossimo progetto"
+  // la CTA fluttuante compare quando quella sotto il titolo è uscita dallo schermo (verso l'alto) e resta fino in fondo
   const main = document.querySelector<HTMLElement>('[data-cta-main]');
   const float = document.querySelector<HTMLElement>('[data-cta-float]');
-  const next = document.querySelector<HTMLElement>('.next');
   if (main && float) {
-    let passed = false;
-    let atEnd = false;
-    const sync = () => {
-      const on = passed && !atEnd;
+    new IntersectionObserver(([e]) => {
+      const on = !e.isIntersecting && e.boundingClientRect.top < 0;
       float.classList.toggle('show', on);
       float.setAttribute('aria-hidden', String(!on));
       float.tabIndex = on ? 0 : -1;
-    };
-    new IntersectionObserver(([e]) => {
-      passed = !e.isIntersecting && e.boundingClientRect.top < 0;
-      sync();
     }).observe(main);
-    if (next)
-      new IntersectionObserver(([e]) => {
-        atEnd = e.isIntersecting;
-        sync();
-      }).observe(next);
   }
 </script>
