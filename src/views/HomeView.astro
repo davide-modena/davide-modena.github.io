@@ -15,8 +15,9 @@ interface Props {
 const { lang } = Astro.props;
 const t = useTranslations(lang);
 const works = await getLocalized('works', lang);
-const lab = (await getLocalized('lab', lang)).filter((p) => p.data.featured).slice(0, 6);
 const allLab = await getLocalized('lab', lang);
+// i primi 6: prima quelli in evidenza, poi gli altri (già in ordine)
+const lab = [...allLab.filter((p) => p.data.featured), ...allLab.filter((p) => !p.data.featured)].slice(0, 6);
 const fmt = (ym: string) => ym.slice(0, 4);
 ---
 
